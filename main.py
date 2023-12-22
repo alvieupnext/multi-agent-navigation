@@ -1,16 +1,27 @@
-# This is a sample Python script.
+from environments.five_grid import FiveGrid, layouts
+import numpy as np
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+chosen_layout = layouts["pong"]
+env = FiveGrid(illegal_positions=chosen_layout)
 
+#Generate a generic loop for the environment using an agent that does random actions
+# Path: main.py
+# Compare this snippet from agents/Receiver.py:
+def choose_action(action_mask):
+    # Choose a random action
+    action = np.random.choice(np.where(action_mask == 1)[0])
+    # Return the action
+    return action
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+observations, infos = env.reset()
 
+while env.agents:
+    # From observations, get the action mask
+    action_mask = observations["receiver"]["action_mask"]
+    # Get the observations, rewards, terminations, truncations and infos
+    observations, rewards, terminations, truncations, infos = env.step({"receiver": choose_action(action_mask)})
+    # Print receiver reward
+    print("Receiver reward: " + str(rewards["receiver"]))
+    # Render the environment
+    env.render()
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
