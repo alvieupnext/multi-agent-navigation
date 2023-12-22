@@ -14,7 +14,7 @@ class FiveGrid(ParallelEnv):
         'render_modes': ['human'],
     }
 
-    def __init__(self, illegal_positions=None, receiver_position=(2, 2), grid_size=(5, 5), termination_probability=0.1):
+    def __init__(self, illegal_positions=None, receiver_position=(2, 2), grid_size=(5, 5)):
         """The init methods takes in environment arguments.
         Should define the following attributes:
         - x and y coordinates for the receiver
@@ -37,7 +37,7 @@ class FiveGrid(ParallelEnv):
         self.mask_mapping = self.createMaskMapping(self.grid_size[0] * self.grid_size[1])
         self.num_states = (self.grid_size[0] * self.grid_size[1]) - len(self.illegal_states)
         self.timestep = 0
-        self.ptem = termination_probability
+        self.ptem = 0
 
    # Generate an observation with their agent mask
     def generateObservation(self):
@@ -67,6 +67,9 @@ class FiveGrid(ParallelEnv):
 
                And must set up the environment so that render(), step(), and observe() can be called without issues.
                """
+        if options is None:
+            options = {"termination_probability": 0.1}
+        self.ptem = options["termination_probability"]
         self.agents = copy(self.possible_agents)
         self.receiver = self.receiver_position
         # For the goal location, we want to make sure that it is not in the same position as the receiver
@@ -169,9 +172,9 @@ class FiveGrid(ParallelEnv):
         elif action == 1 and y < self.grid_size[1] - 1:
             self.receiver = (x, y + 1)
         elif action == 2 and x > 0:
-            self.receiver = (x - 1, y)
-        elif action == 3 and x < self.grid_size[0] - 1:
             self.receiver = (x + 1, y)
+        elif action == 3 and x < self.grid_size[0] - 1:
+            self.receiver = (x - 1, y)
         # Check whether we have entered an illegal state
         if self.receiver in self.illegal_positions:
             print("Receiver is in an illegal position")
@@ -205,8 +208,8 @@ class FiveGrid(ParallelEnv):
     def render(self):
         # Render the environment to the screen
         grid = np.full(self.grid_size, fill_value=' ', dtype='<U1')  # Initialize with empty spaces
-        grid[self.receiver[0], self.receiver[1]] = "R"  # Doorway
-        grid[self.goal[0], self.goal[1]] = "G"  # Goal
+        grid[self.receiver[1], self.receiver[0]] = "R"  # Doorway
+        grid[self.goal[1], self.goal[0]] = "G"  # Goal
         # Mark illegal positions with "XX"
         for x, y in self.illegal_positions:
             grid[y, x] = "X"
