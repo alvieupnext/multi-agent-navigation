@@ -1,7 +1,8 @@
-# Generate a template for a sender agent
+import tensorflow as tf
+
 class Sender:
     def __init__(self, name, agent_id, logger):
-      pass
+        pass
 
     def choose_action(self, state, action_mask):
         pass
