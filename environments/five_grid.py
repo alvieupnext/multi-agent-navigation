@@ -195,11 +195,11 @@ class FiveGrid(ParallelEnv):
         else:
             # Check for termination using the probability
             if np.random.random() < self.ptem:
-                terminations["receiver"] = True
+                truncations["receiver"] = True
 
         # From the terminations, remove all the agents that have reached the goal
         for agent in terminations:
-            if terminations[agent]:
+            if terminations[agent] or truncations[agent]:
                 self.agents.remove(agent)
 
         #Return the observations, rewards, terminations, truncations and infos
