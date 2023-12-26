@@ -27,58 +27,74 @@ layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"
 
 # 12 million steps
 learning_steps = 12000000
+
+# Convert the state number into a one-hot vector
+def state_to_one_hot(state, num_states):
+    one_hot = np.zeros(num_states)
+    one_hot[state] = 1
+    return one_hot
+
+def state_and_msgs_to_one_hot(state, messages, num_states, num_messages):
+    one_hot = np.zeros(num_states + num_messages * len(messages))
+    one_hot[state] = 1
+    for i in range(len(messages)):
+        one_hot[num_states + i * num_messages + messages[i]] = 1
+    return one_hot
+
+print(state_and_msgs_to_one_hot(5, [0, 1, 2], 10, 3))
 # # Amount of episodes
 # episodes =
-
-for lay_out in layouts:
-    env = FiveGrid(illegal_positions=lay_out)
-    for gamma in gamma_values:
-        options = {"termination_probability": 1 - gamma}
-        for M in M_values:
-            for C in C_values:
-                for eta in eta_values:
-                    for epsilon_s in epsilon_s_values:
-                        senders = [Sender(epsilon_s, C, env.world_size) for _ in range(M)]
-                        for epsilon_r in epsilon_r_values:
-                            print("M: " + str(M) + ", C: " + str(C) + ", eta: " + str(eta) + ", epsilon_s: " + str(
-                                epsilon_s) + ", epsilon_r: " + str(epsilon_r) + ", gamma: " + str(gamma))
-                            receiver = Receiver(epsilon_r, env.world_size, M, C)
-                            action = None
-                            messages = []
-                            observations, infos = env.reset(options=options)
-                            # Get the goal state
-                            goal_state = env.returnGoal()
-                            messages = []
-                            # For every sender, generate a message
-                            for sender in senders:
-                                messages.append(sender.choose_action(goal_state))
-                            for step in range(learning_steps):
-                                observation = observations["receiver"]
-                                # Choose an appropriate action for the receiver
-                                action = receiver.choose_action([observation["observation"]].extend(messages), observation["action_mask"])
-                                # Get the observations, rewards, terminations, truncations and infos
-                                next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
-                                reward = rewards["receiver"]
-                                # Learn from the experience as a receiver
-                                next_observation = next_observations["receiver"]
-                                receiver.learn([observation["observation"]].extend(messages), action, reward,
-                                               [next_observation["observation"]].extend(messages))
-                                # Check for termination or truncation
-                                if terminations["receiver"] or truncations["receiver"]:
-                                    # Senders all have an opportunity to learn
-                                    for sender, message in zip(senders, messages):
-                                        # TODO: flatten the location
-                                        sender.learn(goal_state, message, reward)
-                                    # Reset the environment
-                                    observations, infos = env.reset(options=options)
-                                    # Get the goal state
-                                    goal_state = env.returnGoal()
-                                    messages = []
-                                    # For every sender, generate a message
-                                    for sender in senders:
-                                        messages.append(sender.choose_action(goal_state))
-                                else:
-                                    observations = next_observations
+#
+# for lay_out in layouts:
+#     env = FiveGrid(illegal_positions=lay_out)
+#     for gamma in gamma_values:
+#         options = {"termination_probability": 1 - gamma}
+#         for M in M_values:
+#             for C in C_values:
+#                 for eta in eta_values:
+#                     for epsilon_s in epsilon_s_values:
+#                         senders = [Sender(epsilon_s, C, env.world_size) for _ in range(M)]
+#                         for epsilon_r in epsilon_r_values:
+#                             print("M: " + str(M) + ", C: " + str(C) + ", eta: " + str(eta) + ", epsilon_s: " + str(
+#                                 epsilon_s) + ", epsilon_r: " + str(epsilon_r) + ", gamma: " + str(gamma))
+#                             receiver = Receiver(gamma, epsilon_r, env.world_size, M, C)
+#                             action = None
+#                             messages = []
+#                             observations, infos = env.reset(options=options)
+#                             # Get the goal state
+#                             goal_state = env.returnGoal()
+#                             messages = []
+#                             # For every sender, generate a message
+#                             for sender in senders:
+#                                 messages.append(sender.choose_action(goal_state))
+#                             for step in range(learning_steps):
+#                                 observation = observations["receiver"]
+#                                 # Choose an appropriate action for the receiver
+#                                 action = receiver.choose_action([observation["observation"]].extend(messages), observation["action_mask"])
+#                                 # Get the observations, rewards, terminations, truncations and infos
+#                                 next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
+#                                 reward = rewards["receiver"]
+#                                 # Learn from the experience as a receiver
+#                                 next_observation = next_observations["receiver"]
+#                                 receiver.learn([observation["observation"]].extend(messages)
+#                                                [next_observation["observation"]].extend(messages)
+#                                                , action, reward)
+#                                 # Check for termination or truncation
+#                                 if terminations["receiver"] or truncations["receiver"]:
+#                                     # Senders all have an opportunity to learn
+#                                     for sender, message in zip(senders, messages):
+#                                         # TODO: flatten the location
+#                                         sender.learn(goal_state, message, reward)
+#                                     # Reset the environment
+#                                     observations, infos = env.reset(options=options)
+#                                     # Get the goal state
+#                                     goal_state = env.returnGoal()
+#                                     messages = []
+#                                     # For every sender, generate a message
+#                                     for sender in senders:
+#                                         messages.append(sender.choose_action(goal_state))
+#                                 else:
+#                                     observations = next_observations
 
 
 
