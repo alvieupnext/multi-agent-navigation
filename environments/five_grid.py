@@ -32,10 +32,8 @@ class FiveGrid(ParallelEnv):
         self.goal = ()
         self.illegal_positions = illegal_positions
         self.illegal_states = list(map(lambda x: self.flattenPosition(x[0], x[1]), self.illegal_positions))
-        self.position_mapping = self.createStateMapping(self.grid_size[0] * self.grid_size[1], self.illegal_states)
         # Get all legal states by getting the values from the mapping (remove the Nones)
         self.mask_mapping = self.createMaskMapping(self.grid_size[0] * self.grid_size[1])
-        # TODO: bespreek welke best om te doen
         self.num_states = (self.grid_size[0] * self.grid_size[1]) - len(self.illegal_states)
         self.world_size = self.grid_size[0] * self.grid_size[1]
         self.timestep = 0
@@ -44,14 +42,14 @@ class FiveGrid(ParallelEnv):
    # Generate an observation with their agent mask
     def generateObservation(self):
         #Get the flattened position of the agent
-        agent_position = self.position_mapping[self.flattenPosition(self.receiver[0], self.receiver[1])]
+        agent_position = self.flattenPosition(self.receiver[0], self.receiver[1])
         # Generate the observation for the agents
             # self.observation[agent] = self.agents[agent][0] + self.grid_size[1] * self.agents[agent][1]
         return {"observation": agent_position, "action_mask": self.mask_mapping[agent_position]}
 
     # Returns the goal position flattened and translated
     def returnGoal(self):
-        return self.position_mapping[self.flattenPosition(self.goal[0], self.goal[1])]
+        return self.flattenPosition(self.goal[0], self.goal[1])
 
 
     def flattenPosition(self, x, y):
@@ -82,9 +80,8 @@ class FiveGrid(ParallelEnv):
         # For the goal location, we want to make sure that it is not in the same position as the receiver
         # We take it out of the legal positions stored in the position mapping keys but we filter out the keys
         # that have None as value
-        # First, filter the mapping to remove None positions
-        legal_positions = list(filter(lambda key: self.position_mapping[key] is not None, self.position_mapping.keys()))
-        # flatten en translate the receiver position
+        legal_positions = [i for i in range(self.world_size) if i not in self.illegal_states]
+        # flatten the receiver position
         receiver_position = self.flattenPosition(self.receiver[0], self.receiver[1])
         # Remove the receiver position from the legal positions
         legal_positions.remove(receiver_position)
@@ -96,36 +93,10 @@ class FiveGrid(ParallelEnv):
         infos = {}
         return observations, infos
 
-
-    def createStateMapping(self, num_states, illegal_states):
-        """
-        Create a mapping from original states to new states, excluding illegal states.
-
-        :param num_states: The total number of states in the original state space.
-        :param illegal_states: A list of states that are considered illegal and should be excluded.
-        :return: A dictionary mapping from original states to new states.
-        """
-        new_state_mapping = {}
-        new_state_index = 0
-
-        for original_state in range(num_states):
-            if original_state not in illegal_states:
-                new_state_mapping[original_state] = new_state_index
-                new_state_index += 1
-            else:
-                new_state_mapping[original_state] = None  # Mark illegal states with None
-
-        return new_state_mapping
-
     def createMaskMapping(self, num_states):
         mask_mapping = {}
         # For every state, use the mapping to retreive the translated state
         for state in range(num_states):
-            if self.position_mapping[state] is None:
-                #Do Not generate a mask for illegal states
-                continue
-            else:
-                translated_state = self.position_mapping[state]
                 # Get the x and y coordinates of the translated state
                 x, y = self.unflattenPosition(state)
                 # Generate the action mask
@@ -147,7 +118,7 @@ class FiveGrid(ParallelEnv):
                     # If the possible next position is an illegal position, set the action mask to 0
                     if possible_next_position in self.illegal_positions:
                         action_mask[i] = 0
-                mask_mapping[translated_state] = action_mask
+                mask_mapping[state] = action_mask
         return mask_mapping
 
 
@@ -178,13 +149,14 @@ class FiveGrid(ParallelEnv):
             self.receiver = (x, y - 1)
         elif action == 1 and y < self.grid_size[1] - 1:
             self.receiver = (x, y + 1)
-        elif action == 2 and x > 0:
+        elif action == 2 and x < self.grid_size[0] - 1:
             self.receiver = (x + 1, y)
-        elif action == 3 and x < self.grid_size[0] - 1:
+        elif action == 3 and x > 0:
             self.receiver = (x - 1, y)
         # Check whether we have entered an illegal state
         if self.receiver in self.illegal_positions:
             print("Receiver is in an illegal position")
+        print("Receiver is in position: ", self.receiver)
         # Update the observations
         observations["receiver"] = self.generateObservation()
         # Update the rewards
