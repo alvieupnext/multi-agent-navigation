@@ -123,18 +123,19 @@ class FiveGrid(ParallelEnv):
                 x, y = self.unflattenPosition(state)
                 # Generate the action mask
                 action_mask = np.ones(4, dtype=int8)
+                # Out of bounds up
                 if y == 0:
                     action_mask[0] = 0
-                    # out of bounds down
+                # Out of bounds down
                 elif y == self.grid_size[1] - 1:
                     action_mask[1] = 0
-                    # out of bounds left
+                # Out of bounds left
                 if x == 0:
                     action_mask[3] = 0
-                    # out of bounds right
+                # Out of bounds right
                 elif x == self.grid_size[0] - 1:
                     action_mask[2] = 0
-                    # Generate possible next positions
+                # Generate possible next positions
                 possible_next_positions = [(x, y - 1), (x, y + 1), (x + 1, y), (x - 1, y)]
                 for i, possible_next_position in enumerate(possible_next_positions):
                     # If the possible next position is an illegal position, set the action mask to 0
@@ -157,7 +158,7 @@ class FiveGrid(ParallelEnv):
                 - truncations
 
                 And any internal state used by observe() or render()
-                """
+        """
         # Increment the timestep
         self.timestep += 1
         # Initialize the observations, rewards, terminations, truncations and infos
