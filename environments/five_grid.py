@@ -35,7 +35,9 @@ class FiveGrid(ParallelEnv):
         self.position_mapping = self.createStateMapping(self.grid_size[0] * self.grid_size[1], self.illegal_states)
         # Get all legal states by getting the values from the mapping (remove the Nones)
         self.mask_mapping = self.createMaskMapping(self.grid_size[0] * self.grid_size[1])
+        # TODO: bespreek welke best om te doen
         self.num_states = (self.grid_size[0] * self.grid_size[1]) - len(self.illegal_states)
+        self.world_size = self.grid_size[0] * self.grid_size[1]
         self.timestep = 0
         self.ptem = 0
 
@@ -46,6 +48,11 @@ class FiveGrid(ParallelEnv):
         # Generate the observation for the agents
             # self.observation[agent] = self.agents[agent][0] + self.grid_size[1] * self.agents[agent][1]
         return {"observation": agent_position, "action_mask": self.mask_mapping[agent_position]}
+
+    # Returns the goal position flattened and translated
+    def returnGoal(self):
+        return self.position_mapping[self.flattenPosition(self.goal[0], self.goal[1])]
+
 
     def flattenPosition(self, x, y):
         return x + self.grid_size[1] * y
@@ -230,6 +237,6 @@ two_room = [(2,0), (2,1), (2,3), (2,4)]
 flower = [(0,2), (2, 0), (4,2), (2,4)]
 
 #Make a dictionary for the lay-outs
-layouts = {"pong": pong, "four_room": four_room, "two_room": two_room, "flower": flower}
+layouts = {"pong": pong, "four_room": four_room, "two_room": two_room, "flower": flower, "empty_room": []}
 
 
