@@ -100,12 +100,26 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 
     # Any additional logic or cleanup
 
+def find_sender_message_combinations(C):
+    """
+    Find all combinations of senders and messages where the number of channels (C) is equal to N^M.
+    """
+    combinations = []
+    # We check up to C because we can have a maximum of C senders each sending 1 message.
+    for N in range(1, C + 1):
+        # M = C^(1/N) -> Check if M is an integer
+        M = C ** (1 / N)
+        if M.is_integer():
+            combinations.append((N, int(M)))
+    return combinations
 
-def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
-    print(f"M: {M}, C: {C}, eta: {eta}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
+
+def run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
+    # C = num_messages ** M
+    print(f"M: {M}, Number Of Possible Messages: {num_messages}, eta: {eta}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
-    senders = [Sender(epsilon_s, C, env.world_size, eta) for _ in range(M)]
-    receiver = Receiver(gamma, epsilon_r, env.world_size, M, C, eta)
+    senders = [Sender(epsilon_s, num_messages, env.world_size, eta) for _ in range(M)]
+    receiver = Receiver(gamma, epsilon_r, env.world_size, M, num_messages, eta)
     action = None
     messages = []
     observations, infos = env.reset(options=options)
@@ -124,12 +138,12 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
     for step in range(learning_steps):
         observation = observations["receiver"]
-        context = state_and_msgs_to_one_hot(observation["observation"], messages, env.world_size, C)
+        context = state_and_msgs_to_one_hot(observation["observation"], messages, env.world_size, num_messages)
         action = receiver.choose_action(context, observation["action_mask"])
         next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
         reward = rewards["receiver"]
         next_observation = next_observations["receiver"]
-        next_context = state_and_msgs_to_one_hot(next_observation["observation"], messages, env.world_size, C)
+        next_context = state_and_msgs_to_one_hot(next_observation["observation"], messages, env.world_size, num_messages)
         receiver.add_example(context, next_context, action, reward)
         if step % 10 == 0:
             receiver.learn()
