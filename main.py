@@ -73,13 +73,13 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
         next_observation = next_observations["receiver"]
         next_context = state_and_msgs_to_one_hot(next_observation["observation"], messages, env.world_size, C)
         receiver.add_example(context, next_context, action, reward)
+        if step % 10 == 0:
+            receiver.learn()
 
         if terminations["receiver"] or truncations["receiver"]:
             for sender, message in zip(senders, messages):
                 context = state_to_one_hot(goal_state, env.world_size)
                 sender.learn(context, message, reward)
-            receiver.learn()
-
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
             observations, infos = env.reset(options=options)
