@@ -56,6 +56,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 
     episodes_rewards = []
     episode_steps = []
+    episode_total_steps = []
 
     # Create a progress bar for the learning steps
     progress_bar = tqdm(total=learning_steps, position=0, leave=True)
@@ -81,6 +82,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
         if terminations["receiver"] or truncations["receiver"]:
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
+            episode_total_steps.append(step + 1)
             observations, infos = env.reset(options=options)
             goal_state = env.returnGoal()
             receiver.set_goal(goal_state)
@@ -94,7 +96,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     # Close the progress bar
     progress_bar.close()
 
-    return episodes_rewards, episode_steps
+    return episodes_rewards, episode_steps, episode_total_steps
 
     # Any additional logic or cleanup
 
