@@ -19,11 +19,9 @@ class Receiver:
 
         # If a random number is smaller than epsilon => take a random direction (exploration)
         if np.random.rand() < self.epsilon:
-            print("random direction")
             return np.random.randint(self.number_of_directions)
         # Otherwise, follow the model to predict the next move of the agent (exploitation)
         else:
-            print("following the model's direction")
             prediction = self.model.predict(np.reshape(observation, (1, self.observation_size)))
             # Set the probability of the unavailable actions to -inf
             prediction[action_mask == 0] = -np.inf

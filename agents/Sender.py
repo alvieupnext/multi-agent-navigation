@@ -38,11 +38,9 @@ class Sender:
         """
         # Generate a random number and check if it is less than epsilon, if this is the case, choose a random message action, use numpy
         if np.random.rand() < self.epsilon:
-            print("random action")
             return np.random.randint(self.num_possible_messages)
         # Otherwise, use the model to predict the message action
         else:
-            print("model action")
             return np.argmax(self.model.predict(np.reshape(context, (1, self.world_size))))
 
     def learn(self, context, message_action, reward):
