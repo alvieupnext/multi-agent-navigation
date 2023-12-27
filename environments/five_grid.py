@@ -36,6 +36,7 @@ class FiveGrid(ParallelEnv):
         self.mask_mapping = self.createMaskMapping(self.grid_size[0] * self.grid_size[1])
         self.num_states = (self.grid_size[0] * self.grid_size[1]) - len(self.illegal_states)
         self.world_size = self.grid_size[0] * self.grid_size[1]
+        self.legal_states = [i for i in range(self.world_size) if i not in self.illegal_states]
         self.timestep = 0
         self.ptem = 0
 
@@ -80,7 +81,7 @@ class FiveGrid(ParallelEnv):
         # For the goal location, we want to make sure that it is not in the same position as the receiver
         # We take it out of the legal positions stored in the position mapping keys but we filter out the keys
         # that have None as value
-        legal_positions = [i for i in range(self.world_size) if i not in self.illegal_states]
+        legal_positions = copy(self.legal_states)
         # flatten the receiver position
         receiver_position = self.flattenPosition(self.receiver[0], self.receiver[1])
         # Remove the receiver position from the legal positions

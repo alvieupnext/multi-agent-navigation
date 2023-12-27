@@ -20,14 +20,15 @@ class Sender:
     Message actions are selected using an ε-greedy policy.
     """
 
-    def __init__(self, epsilon, num_possible_messages, world_size):
+    def __init__(self, epsilon, num_possible_messages, world_size, eta):
         self.epsilon = epsilon
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
+        optimizer = tf.keras.optimizer.RMSprop(learning_rate=eta)
         self.model = tf.keras.Sequential([
             tf.keras.layers.Dense(num_possible_messages, activation='softmax', input_shape=(world_size,))
         ])
-        self.model.compile(optimizer='adam', loss='mse')
+        self.model.compile(optimizer=optimizer, loss='mse')
 
     def choose_action(self, context):
         """
@@ -57,10 +58,6 @@ class Sender:
         output = np.reshape(output, (1, self.num_possible_messages))
         # Update the model
         self.model.fit(context, output, verbose=0)
-
-    def update_epsilon(self):
-        pass
-
 
 # test
 if __name__ == "__main__":

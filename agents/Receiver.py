@@ -4,15 +4,16 @@ import numpy as np
 
 class Receiver:
 
-    def __init__(self, discount_factor, epsilon, world_size, num_senders, channel_capacity):
+    def __init__(self, discount_factor, epsilon, world_size, num_senders, channel_capacity, eta):
         self.discount_factor = discount_factor
         self.epsilon = epsilon
         self.observation_size = world_size+num_senders*channel_capacity
         self.number_of_directions = 4
+        optimizer = tf.keras.optimizer.RMSprop(learning_rate=eta)
         self.model = tf.keras.Sequential([
             tf.keras.layers.Dense(self.number_of_directions, activation='softmax', input_shape=(self.observation_size,))
         ])
-        self.model.compile(optimizer='rmsprop', loss='mse')
+        self.model.compile(optimizer=optimizer, loss='mse')
 
     def choose_action(self, observation, action_mask):
 
@@ -24,6 +25,7 @@ class Receiver:
         else:
             print("following the model's direction")
             prediction = self.model.predict(np.reshape(observation, (1, self.observation_size)))
+            # Set the probability of the unavailable actions to -inf
             prediction[action_mask == 0] = -np.inf
             return np.argmax(prediction)
 
@@ -37,9 +39,6 @@ class Receiver:
         output = np.reshape(output, (1, self.number_of_directions))
         # Update the model
         self.model.fit(observation, output, verbose=0)
-
-    def update_epsilon(self):
-        pass
 
 
 if __name__ == "__main__":
