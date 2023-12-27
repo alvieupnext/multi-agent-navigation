@@ -2,7 +2,6 @@ import functools
 from copy import copy
 from numpy import int8
 import numpy as np
-from pettingzoo.utils import wrappers, parallel_to_aec
 
 # The first environment from the assignment
 class FiveGrid:
