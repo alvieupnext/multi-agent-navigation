@@ -41,7 +41,7 @@ class Sender:
             return np.random.randint(self.num_possible_messages)
         # Otherwise, use the model to predict the message action
         else:
-            return np.argmax(self.model.predict(np.reshape(context, (1, self.world_size)),verbose=0))
+            return np.argmax(self.model.predict(np.reshape(context, (1, self.world_size)), verbose=0))
 
     def learn(self, context, message_action, reward):
         """
@@ -56,6 +56,7 @@ class Sender:
         output = np.reshape(output, (1, self.num_possible_messages))
         # Update the model
         self.model.fit(context, output, verbose=0)
+
 
 # test
 if __name__ == "__main__":

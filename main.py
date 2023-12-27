@@ -5,6 +5,8 @@ from agents.QLearningAgent import QLearningAgent
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import pandas as pd
+from plotting import plot_reward_curves
 
 chosen_layout = env_layouts["pong"]
 env = FiveGrid(illegal_positions=chosen_layout)
@@ -113,6 +115,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
     episodes_rewards = []
     episode_steps = []
+    episode_total_steps = []
 
     # Create a progress bar for the learning steps
     progress_bar = tqdm(total=learning_steps, position=0, leave=True)
@@ -135,6 +138,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
                 sender.learn(context, message, reward)
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
+            episode_total_steps.append(step + 1)
             observations, infos = env.reset(options=options)
             goal_state = env.returnGoal()
             messages = []
@@ -151,7 +155,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # Close the progress bar
     progress_bar.close()
 
-    return episodes_rewards, episode_steps
+    return episodes_rewards, episode_steps, episode_total_steps
 
     # Any additional logic or cleanup
 
@@ -164,12 +168,32 @@ plt.plot(rewards)
 plt.ylabel('Reward')
 plt.xlabel('Episode')
 plt.show()
+# Read the results from the file
+results = pd.read_csv("results_4_0.0001_0.05_0.05_0.8_1200.csv", index_col=0)
 
-plt.plot(steps)
-plt.ylabel('Steps')
-plt.xlabel('Episode')
-plt.show()
+print(results)
 
+# Plot the results
+plot_reward_curves(results)
+# env = FiveGrid(illegal_positions=chosen_layout)
+# gamma = 0.7
+# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+#
+# # Generate a plot for the rewards and steps
+# plt.plot(rewards)
+# plt.ylabel('Reward')
+# plt.xlabel('Episode')
+# plt.show()
+#
+# plt.plot(steps)
+# plt.ylabel('Steps')
+# plt.xlabel('Episode')
+# plt.show()
+#
+# plt.plot(total_steps)
+# plt.ylabel('Total steps')
+# plt.xlabel('Episode')
+# plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
