@@ -60,6 +60,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
     episodes_rewards = []
     episode_steps = []
+    episode_total_steps = []
 
     # Create a progress bar for the learning steps
     progress_bar = tqdm(total=learning_steps, position=0, leave=True)
@@ -82,6 +83,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
                 sender.learn(context, message, reward)
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
+            episode_total_steps.append(step)
             observations, infos = env.reset(options=options)
             goal_state = env.returnGoal()
             messages = []
@@ -98,13 +100,13 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # Close the progress bar
     progress_bar.close()
 
-    return episodes_rewards, episode_steps
+    return episodes_rewards, episode_steps, episode_total_steps
 
     # Any additional logic or cleanup
 
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.7
-rewards, steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
 
 # Generate a plot for the rewards and steps
 plt.plot(rewards)
@@ -117,6 +119,10 @@ plt.ylabel('Steps')
 plt.xlabel('Episode')
 plt.show()
 
+plt.plot(total_steps)
+plt.ylabel('Total steps')
+plt.xlabel('Episode')
+plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
