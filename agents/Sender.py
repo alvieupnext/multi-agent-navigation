@@ -24,7 +24,7 @@ class Sender:
         self.epsilon = epsilon
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
-        optimizer = tf.keras.optimizers.RMSprop(learning_rate=eta)
+        optimizer = tf.keras.optimizers.legacy.RMSprop(learning_rate=eta)
         self.model = tf.keras.Sequential([
             tf.keras.layers.Dense(num_possible_messages, activation='softmax', input_shape=(world_size,))
         ])
@@ -41,7 +41,7 @@ class Sender:
             return np.random.randint(self.num_possible_messages)
         # Otherwise, use the model to predict the message action
         else:
-            return np.argmax(self.model.predict(np.reshape(context, (1, self.world_size))))
+            return np.argmax(self.model.predict(np.reshape(context, (1, self.world_size)),verbose=0))
 
     def learn(self, context, message_action, reward):
         """

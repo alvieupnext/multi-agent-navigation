@@ -159,7 +159,7 @@ class FiveGrid(ParallelEnv):
         # Check whether we have entered an illegal state
         if self.receiver in self.illegal_positions:
             print("Receiver is in an illegal position")
-        print("Receiver is in position: ", self.receiver)
+        # print("Receiver is in position: ", self.receiver)
         # Update the observations
         observations["receiver"] = self.generateObservation()
         # Update the rewards

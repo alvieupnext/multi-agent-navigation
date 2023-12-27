@@ -2,6 +2,8 @@ from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
 import numpy as np
+import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 chosen_layout = env_layouts["pong"]
 env = FiveGrid(illegal_positions=chosen_layout)
@@ -26,7 +28,7 @@ gamma_values = [0.7, 0.8, 0.9]
 layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"], env_layouts["empty_room"]]
 
 # 12 million steps
-learning_steps = 12000000
+learning_steps = 4000
 
 # Convert the state number into a one-hot vector
 def state_to_one_hot(state, num_states):
@@ -41,64 +43,79 @@ def state_and_msgs_to_one_hot(state, messages, num_states, num_messages):
         one_hot[num_states + i * num_messages + messages[i]] = 1
     return one_hot
 
+
 def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
-    print("M: " + str(M) + ", C: " + str(C) + ", eta: " + str(eta) + ", epsilon_s: " + str(
-        epsilon_s) + ", epsilon_r: " + str(epsilon_r) + ", gamma: " + str(gamma))
+    print(f"M: {M}, C: {C}, eta: {eta}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
     senders = [Sender(epsilon_s, C, env.world_size, eta) for _ in range(M)]
     receiver = Receiver(gamma, epsilon_r, env.world_size, M, C, eta)
     action = None
     messages = []
     observations, infos = env.reset(options=options)
-    # Get the goal state
     goal_state = env.returnGoal()
-    # For every sender, generate a message
+
     for sender in senders:
         context = state_to_one_hot(goal_state, env.world_size)
         messages.append(sender.choose_action(context))
+
     episodes_rewards = []
     episode_steps = []
+
+    # Create a progress bar for the learning steps
+    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+
     for step in range(learning_steps):
         observation = observations["receiver"]
         context = state_and_msgs_to_one_hot(observation["observation"], messages, env.world_size, C)
-        # Choose an appropriate action for the receiver
         action = receiver.choose_action(context, observation["action_mask"])
-        # Get the observations, rewards, terminations, truncations and infos
         next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
         reward = rewards["receiver"]
-        # Learn from the experience as a receiver
         next_observation = next_observations["receiver"]
         next_context = state_and_msgs_to_one_hot(next_observation["observation"], messages, env.world_size, C)
         receiver.learn(context, next_context, action, reward)
-        # Check for termination or truncation
+
         if terminations["receiver"] or truncations["receiver"]:
-            # Senders all have an opportunity to learn
             for sender, message in zip(senders, messages):
                 context = state_to_one_hot(goal_state, env.world_size)
                 sender.learn(context, message, reward)
-            # Print the episode length and reward
-            print("Episode length: " + str(env.timestep) + ", reward: " + str(reward))
-            # Add the episode length and reward to the list
+
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
-            # Reset the environment
             observations, infos = env.reset(options=options)
-            # Get the goal state
             goal_state = env.returnGoal()
             messages = []
-            # For every sender, generate a message
             for sender in senders:
                 context = state_to_one_hot(goal_state, env.world_size)
                 messages.append(sender.choose_action(context))
         else:
             observations = next_observations
-        return
+
+        # Update the progress bar
+        progress_bar.update(1)
+        progress_bar.set_description(f"Step {step}/{learning_steps}")
+
+    # Close the progress bar
+    progress_bar.close()
+
+    return episodes_rewards, episode_steps
 
     # Any additional logic or cleanup
 
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.7
-run_experiment(4, 12, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+rewards, steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+
+# Generate a plot for the rewards and steps
+plt.plot(rewards)
+plt.ylabel('Reward')
+plt.xlabel('Episode')
+plt.show()
+
+plt.plot(steps)
+plt.ylabel('Steps')
+plt.xlabel('Episode')
+plt.show()
+
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
