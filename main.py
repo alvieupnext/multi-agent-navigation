@@ -1,6 +1,7 @@
 from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
+from agents.QLearningAgent import QLearningAgent
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -42,6 +43,58 @@ def state_and_msgs_to_one_hot(state, messages, num_states, num_messages):
     for i in range(len(messages)):
         one_hot[num_states + i * num_messages + messages[i]] = 1
     return one_hot
+
+def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
+    options = {"termination_probability": 1 - gamma}
+    receiver = QLearningAgent(env.world_size, gamma, learning_rate, epsilon)
+    action = None
+    observations, infos = env.reset(options=options)
+    goal_state = env.returnGoal()
+    receiver.set_goal(goal_state)
+
+    episodes_rewards = []
+    episode_steps = []
+
+    # Create a progress bar for the learning steps
+    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+
+    for step in range(learning_steps):
+        current_observation_and_mask = observations["receiver"]
+        #print("current_observation_and_mask: " + str(current_observation_and_mask))
+        current_observation = current_observation_and_mask["observation"]
+        #print("current_observation: " + str(current_observation))
+        current_mask = current_observation_and_mask["action_mask"]
+        #print("current_mask: " + str(current_mask))
+        action = receiver.choose_action(current_observation, current_mask)
+        #print("action: " + str(action))
+        next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
+        reward = rewards["receiver"]
+        #print("reward: " + str(reward))
+        next_observation_and_mask = next_observations["receiver"]
+        #print("next_observation_and_mask: " + str(next_observation_and_mask))
+        next_observation = next_observation_and_mask["observation"]
+        #print("next_observation: " + str(next_observation))
+        receiver.learn(current_observation, action, reward, next_observation)
+
+        if terminations["receiver"] or truncations["receiver"]:
+            episode_steps.append(env.timestep)
+            episodes_rewards.append(reward)
+            observations, infos = env.reset(options=options)
+            goal_state = env.returnGoal()
+            receiver.set_goal(goal_state)
+            #print("end of episode")
+        else:
+            observations = next_observations
+        # Update the progress bar
+        progress_bar.update(1)
+        progress_bar.set_description(f"Step {step}/{learning_steps}")
+
+    # Close the progress bar
+    progress_bar.close()
+
+    return episodes_rewards, episode_steps
+
+    # Any additional logic or cleanup
 
 
 def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
@@ -104,8 +157,8 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.7
-rewards, steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
-
+#rewards, steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+rewards, steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
 # Generate a plot for the rewards and steps
 plt.plot(rewards)
 plt.ylabel('Reward')
