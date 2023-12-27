@@ -7,9 +7,11 @@ def plot_reward_curves(pdDataframe):
     """
     For each of the environments, plot the reward curves for the different settings.
     """
-    environments = ["Pong", "Four-room", "Two-room", "Flower", "Empty-room"]
+    environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
     for env in environments:
         plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
+
+gamma = 0.8
 
 
 def plot_reward_curve(pdDataframe, environment):
@@ -28,10 +30,10 @@ def plot_reward_curve(pdDataframe, environment):
     # For each of the settings, plot the reward curve. Rewards are plotted as a sliding window average over 1000 steps
     for setting in settings:
         data = pdDataframe[pdDataframe["Type"] == setting]
-        rewards = data["Reward"]
+        rewards = data["Reward"] * gamma ** data["Steps"]
         total_steps = data["TotalSteps"]
         # Plot the rewards
-        ax.plot(total_steps, rewards.rolling(1000).mean(), label=setting)
+        ax.plot(total_steps, rewards.rolling(100).mean(), label=setting)
 
     # Set the title
     ax.set_title(f"Reward curves for {environment}")
@@ -54,7 +56,7 @@ np.random.seed(0)  # For reproducibility
 
 # Define parameters for mock data
 num_episodes = 10_000  # Number of episodes
-environments = ['Pong', 'Four-room', 'Two-room', 'Flower', 'Empty-room']
+environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
 settings = ['5S-1R', '4S-1R', '3S-1R', '2S-1R', '1S-1R', 'Random', 'Q-learning', 'Max']
 
 # Create an empty DataFrame
@@ -88,5 +90,5 @@ for env in environments:
 # Reset index
 df = df.reset_index(drop=True)
 
-# Plot the reward curves
-plot_reward_curves(df)
+# # Plot the reward curves
+# plot_reward_curves(df)

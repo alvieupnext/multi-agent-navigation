@@ -4,6 +4,8 @@ from agents.Receiver import Receiver
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import pandas as pd
+from plotting import plot_reward_curves
 
 chosen_layout = env_layouts["pong"]
 env = FiveGrid(illegal_positions=chosen_layout)
@@ -104,6 +106,13 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
     # Any additional logic or cleanup
 
+# Read the results from the file
+results = pd.read_csv("results_4_0.0001_0.05_0.05_0.8_1200.csv", index_col=0)
+
+print(results)
+
+# Plot the results
+plot_reward_curves(results)
 # env = FiveGrid(illegal_positions=chosen_layout)
 # gamma = 0.7
 # rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
