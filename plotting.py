@@ -9,7 +9,7 @@ def plot_reward_curves(pdDataframe):
     """
     environments = ["Pong", "Four-room", "Two-room", "Flower", "Empty-room"]
     for env in environments:
-        plot_reward_curve(pdDataframe[pdDataframe["environment"] == env], env)
+        plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
 
 
 def plot_reward_curve(pdDataframe, environment):
@@ -27,9 +27,9 @@ def plot_reward_curve(pdDataframe, environment):
 
     # For each of the settings, plot the reward curve. Rewards are plotted as a sliding window average over 1000 steps
     for setting in settings:
-        data = pdDataframe[pdDataframe["setting"] == setting]
-        rewards = data["rewards"]
-        total_steps = data["total_steps"]
+        data = pdDataframe[pdDataframe["Type"] == setting]
+        rewards = data["Reward"]
+        total_steps = data["TotalSteps"]
         # Plot the rewards
         ax.plot(total_steps, rewards.rolling(1000).mean(), label=setting)
 
@@ -75,13 +75,13 @@ for env in environments:
 
         # Create a temp DataFrame and append to the main DataFrame
         temp_df = pd.DataFrame({
-            'episodes': episodes,
-            'rewards': reward,
-            'steps': steps,
-            'total_steps': total_steps,
-            'channel_capacity': channel_capacity,
-            'setting': setting,
-            'environment': env
+            'Episodes': episodes,
+            'Reward': reward,
+            'Steps': steps,
+            'TotalSteps': total_steps,
+            'C': channel_capacity,
+            'Type': setting,
+            'Env': env
         })
         df = pd.concat([df, temp_df])
 
@@ -89,4 +89,4 @@ for env in environments:
 df = df.reset_index(drop=True)
 
 # Plot the reward curves
-# plot_reward_curves(df)
+plot_reward_curves(df)
