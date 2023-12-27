@@ -1,14 +1,11 @@
 import functools
 from copy import copy
-
-from gymnasium.spaces import Discrete
 from numpy import int8
-from pettingzoo import ParallelEnv
 import numpy as np
 from pettingzoo.utils import wrappers, parallel_to_aec
 
 # The first environment from the assignment
-class FiveGrid(ParallelEnv):
+class FiveGrid:
     metadata = {
         "name": "five_grid",
         'render_modes': ['human'],
@@ -197,13 +194,11 @@ class FiveGrid(ParallelEnv):
             grid[y, x] = "X"
         print(f"{grid}\n")
 
-    @functools.lru_cache(maxsize=None)
     def observation_space(self, agent):
-        return Discrete(self.num_states)
+        return self.num_states
 
-    @functools.lru_cache(maxsize=None)
     def action_space(self, agent):
-        return Discrete(4)
+        return 4
 
 #Here, we define the possible lay-outs
 pong = [(0,1), (0,2), (0,3), (2,0), (2,1), (2,3), (2,4), (4,1), (4,2), (4,3)]

@@ -177,25 +177,25 @@ print(results)
 
 # Plot the results
 plot_reward_curves(results)
-# env = FiveGrid(illegal_positions=chosen_layout)
-# gamma = 0.7
-# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
-#
-# # Generate a plot for the rewards and steps
-# plt.plot(rewards)
-# plt.ylabel('Reward')
-# plt.xlabel('Episode')
-# plt.show()
-#
-# plt.plot(steps)
-# plt.ylabel('Steps')
-# plt.xlabel('Episode')
-# plt.show()
-#
-# plt.plot(total_steps)
-# plt.ylabel('Total steps')
-# plt.xlabel('Episode')
-# plt.show()
+env = FiveGrid(illegal_positions=chosen_layout)
+gamma = 0.7
+rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+
+# Generate a plot for the rewards and steps
+plt.plot(rewards)
+plt.ylabel('Reward')
+plt.xlabel('Episode')
+plt.show()
+
+plt.plot(steps)
+plt.ylabel('Steps')
+plt.xlabel('Episode')
+plt.show()
+
+plt.plot(total_steps)
+plt.ylabel('Total steps')
+plt.xlabel('Episode')
+plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
