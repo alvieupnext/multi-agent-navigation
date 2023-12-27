@@ -78,6 +78,7 @@ class FiveGrid(ParallelEnv):
         self.ptem = options["termination_probability"]
         self.agents = copy(self.possible_agents)
         self.receiver = self.receiver_position
+        self.timestep = 0
         # For the goal location, we want to make sure that it is not in the same position as the receiver
         # We take it out of the legal positions stored in the position mapping keys but we filter out the keys
         # that have None as value

@@ -9,7 +9,7 @@ class Receiver:
         self.epsilon = epsilon
         self.observation_size = world_size+num_senders*channel_capacity
         self.number_of_directions = 4
-        optimizer = tf.keras.optimizer.RMSprop(learning_rate=eta)
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=eta)
         self.model = tf.keras.Sequential([
             tf.keras.layers.Dense(self.number_of_directions, activation='softmax', input_shape=(self.observation_size,))
         ])
@@ -19,12 +19,15 @@ class Receiver:
 
         # If a random number is smaller than epsilon => take a random direction (exploration)
         if np.random.rand() < self.epsilon:
-            return np.random.randint(self.number_of_directions)
+            action_mask_array = np.array(action_mask)
+            legal_actions = np.where(action_mask_array == 1)[0]
+            return np.random.choice(legal_actions)
         # Otherwise, follow the model to predict the next move of the agent (exploitation)
         else:
             prediction = self.model.predict(np.reshape(observation, (1, self.observation_size)))
+            prediction = np.reshape(prediction, (self.number_of_directions,))
             # Set the probability of the unavailable actions to -inf
-            prediction[action_mask == 0] = -np.inf
+            prediction[action_mask == 0] = 0
             return np.argmax(prediction)
 
     def learn(self, observation, next_observation, action, reward):

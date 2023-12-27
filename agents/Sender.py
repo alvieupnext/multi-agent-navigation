@@ -24,7 +24,7 @@ class Sender:
         self.epsilon = epsilon
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
-        optimizer = tf.keras.optimizer.RMSprop(learning_rate=eta)
+        optimizer = tf.keras.optimizers.RMSprop(learning_rate=eta)
         self.model = tf.keras.Sequential([
             tf.keras.layers.Dense(num_possible_messages, activation='softmax', input_shape=(world_size,))
         ])
