@@ -91,7 +91,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
             observations = next_observations
         # Update the progress bar
         progress_bar.update(1)
-        progress_bar.set_description(f"Step {step}/{learning_steps}")
+        progress_bar.set_description(f"Q-Learning Step {step}/{learning_steps}")
 
     # Close the progress bar
     progress_bar.close()
@@ -166,7 +166,7 @@ def run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learn
 
         # Update the progress bar
         progress_bar.update(1)
-        progress_bar.set_description(f"Step {step}/{learning_steps}")
+        progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
 
     # Close the progress bar
     progress_bar.close()
