@@ -94,4 +94,4 @@ if __name__ == "__main__":
     print("Number of tasks left: ", len(remotes))
     calculated_df = ray.get(done_remote[0])
     df = pd.concat([df, calculated_df], ignore_index=True)
-    df.to_csv(f"results_{C}_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
+    df.to_csv(f"results_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
