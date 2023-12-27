@@ -60,7 +60,7 @@ possible_C_values = {
     5: [32]
 }
 # Learning steps is 12 million
-learning_steps = 120
+learning_steps = 12000000
 # The possible layouts for the environment
 layouts = ["pong", "four_room", "two_room", "flower", "empty_room"]
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
@@ -70,7 +70,7 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
-  ray.init()
+  ray.init(address='auto')
   remotes = []
   for layout in layouts:
     for type in types:
