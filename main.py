@@ -169,20 +169,6 @@ gamma = 0.7
 #rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
 #rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
 # Generate a plot for the rewards and steps
-plt.plot(rewards)
-plt.ylabel('Reward')
-plt.xlabel('Episode')
-plt.show()
-
-plt.plot(steps)
-plt.ylabel('Steps')
-plt.xlabel('Episode')
-plt.show()
-
-plt.plot(total_steps)
-plt.ylabel('Total steps')
-plt.xlabel('Episode')
-plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)

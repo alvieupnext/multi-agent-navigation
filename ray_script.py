@@ -1,6 +1,6 @@
 import ray
 import pandas as pd
-from main import run_experiment, FiveGrid, env_layouts
+from main import run_experiment, FiveGrid, env_layouts, run_q_agent
 
 # The columns for the dataframe Episode, Reward, Steps, TotalSteps, C, type, env
 #  type = 5S-1R, 4S-1R, 3S-1R, 2S-1R, 1S-1R, Q-learning, Random  S = Sender
@@ -14,7 +14,7 @@ def run_training(type, C, eta, epsilon_s, epsilon_r, gamma, layout, learning_ste
   # Get the correct lay-out
   env = FiveGrid(illegal_positions=env_layouts[layout])
   if type == "Q-learning":
-    # TODO figure out how to run Q-learning
+    rewards, steps, total_steps = run_q_agent(gamma, epsilon_r, 0.001, env, learning_steps)
     pass
   elif type == "Random":
     # Use a single sender with epsilon = 1
@@ -49,11 +49,11 @@ epsilon_s = 0.05
 # C is 4 (can be multiple C's in later experiments)
 C = 4
 # Learning steps is 12 million
-learning_steps = 1200
+learning_steps = 12000000
 # The possible layouts for the environment
 layouts = ["pong", "four_room", "two_room", "flower", "empty_room"]
 # The possible types ("Q-learning" will be added soon)
-types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random"]
+types = ["Q-learning"]
 
 
 
