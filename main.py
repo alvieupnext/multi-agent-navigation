@@ -83,7 +83,7 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
                 sender.learn(context, message, reward)
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
-            episode_total_steps.append(step)
+            episode_total_steps.append(step + 1)
             observations, infos = env.reset(options=options)
             goal_state = env.returnGoal()
             messages = []
@@ -104,25 +104,25 @@ def run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
 
     # Any additional logic or cleanup
 
-env = FiveGrid(illegal_positions=chosen_layout)
-gamma = 0.7
-rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
-
-# Generate a plot for the rewards and steps
-plt.plot(rewards)
-plt.ylabel('Reward')
-plt.xlabel('Episode')
-plt.show()
-
-plt.plot(steps)
-plt.ylabel('Steps')
-plt.xlabel('Episode')
-plt.show()
-
-plt.plot(total_steps)
-plt.ylabel('Total steps')
-plt.xlabel('Episode')
-plt.show()
+# env = FiveGrid(illegal_positions=chosen_layout)
+# gamma = 0.7
+# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+#
+# # Generate a plot for the rewards and steps
+# plt.plot(rewards)
+# plt.ylabel('Reward')
+# plt.xlabel('Episode')
+# plt.show()
+#
+# plt.plot(steps)
+# plt.ylabel('Steps')
+# plt.xlabel('Episode')
+# plt.show()
+#
+# plt.plot(total_steps)
+# plt.ylabel('Total steps')
+# plt.xlabel('Episode')
+# plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
