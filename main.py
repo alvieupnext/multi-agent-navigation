@@ -33,18 +33,9 @@ layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"
 # 12 million steps
 learning_steps = 4000
 
-# Convert the state number into a one-hot vector
-def state_to_one_hot(state, num_states):
-    one_hot = np.zeros(num_states)
-    one_hot[state] = 1
-    return one_hot
-
-def state_and_msgs_to_one_hot(state, messages, num_states, num_messages):
-    one_hot = np.zeros(num_states + num_messages * len(messages))
-    one_hot[state] = 1
-    for i in range(len(messages)):
-        one_hot[num_states + i * num_messages + messages[i]] = 1
-    return one_hot
+# Flatten an array of messages into a single message (one hot encoding)
+def flatten_messages(messages, num_messages):
+    return sum([message * num_messages ** i for i, message in enumerate(messages)])
 
 def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     options = {"termination_probability": 1 - gamma}
@@ -114,20 +105,22 @@ def find_sender_message_combinations(C):
     return combinations
 
 
-def run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learning_steps):
+def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # C = num_messages ** M
-    print(f"M: {M}, Number Of Possible Messages: {num_messages}, eta: {eta}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
+    print(f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
-    senders = [Sender(epsilon_s, num_messages, env.world_size, eta) for _ in range(M)]
-    receiver = Receiver(gamma, epsilon_r, env.world_size, M, num_messages, eta)
+    senders = [Sender(epsilon_s, num_messages, env.world_size, alpha) for _ in range(M)]
+    receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_r)
     action = None
     messages = []
     observations, infos = env.reset(options=options)
     goal_state = env.returnGoal()
 
     for sender in senders:
-        context = state_to_one_hot(goal_state, env.world_size)
-        messages.append(sender.choose_action(context))
+        messages.append(sender.choose_action(goal_state))
+
+    # Flatten the messages into a single message
+    message = flatten_messages(messages, num_messages)
 
     episodes_rewards = []
     episode_steps = []
@@ -138,20 +131,15 @@ def run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learn
 
     for step in range(learning_steps):
         observation = observations["receiver"]
-        context = state_and_msgs_to_one_hot(observation["observation"], messages, env.world_size, num_messages)
-        action = receiver.choose_action(context, observation["action_mask"])
+        action = receiver.choose_action(observation["observation"], message, observation["action_mask"])
         next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
         reward = rewards["receiver"]
         next_observation = next_observations["receiver"]
-        next_context = state_and_msgs_to_one_hot(next_observation["observation"], messages, env.world_size, num_messages)
-        receiver.add_example(context, next_context, action, reward)
-        if step % 10 == 0:
-            receiver.learn()
+        receiver.learn(observation["observation"], message,action, reward, next_observation["observation"])
 
         if terminations["receiver"] or truncations["receiver"]:
             for sender, message in zip(senders, messages):
-                context = state_to_one_hot(goal_state, env.world_size)
-                sender.learn(context, message, reward)
+                sender.learn(goal_state, message, reward)
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
             episode_total_steps.append(step + 1)
@@ -159,8 +147,7 @@ def run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learn
             goal_state = env.returnGoal()
             messages = []
             for sender in senders:
-                context = state_to_one_hot(goal_state, env.world_size)
-                messages.append(sender.choose_action(context))
+                messages.append(sender.choose_action(goal_state))
         else:
             observations = next_observations
 
