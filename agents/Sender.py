@@ -13,11 +13,11 @@ class Sender:
     Message actions are selected using an ε-greedy policy.
     """
 
-    def __init__(self, epsilon, num_possible_messages, world_size, eta):
+    def __init__(self, epsilon, num_possible_messages, world_size, alpha):
         self.epsilon = epsilon
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
-        self.eta = eta
+        self.alpha = alpha
         self.q_table = np.zeros((world_size, num_possible_messages))
 
     def choose_action(self, context):
@@ -42,4 +42,4 @@ class Sender:
         # Get the Q-value for the next context and the best message action
         target = reward + np.max(self.q_table[context])
         # Update the Q-table
-        self.q_table[context, message_action] += self.eta * (target - prediction)
+        self.q_table[context, message_action] += self.alpha * (target - prediction)
