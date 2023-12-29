@@ -70,8 +70,8 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
-  # ray.init(address='auto')
-  ray.init()
+  ray.init(address='auto')
+  # ray.init()
   remotes = []
   for layout in layouts:
     for type in types:
