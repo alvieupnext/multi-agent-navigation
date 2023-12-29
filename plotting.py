@@ -11,6 +11,7 @@ def plot_reward_curves(pdDataframe):
     for env in environments:
         plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
 
+
 gamma = 0.8
 
 
@@ -48,10 +49,12 @@ def plot_reward_curve(pdDataframe, environment):
     # Show the plot
     plt.show()
 
-# Load tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv from the results folder as a pandas dataframe
-df = pd.read_csv("results/tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv")
-# Plot the reward curves
-plot_reward_curve(df, "pong")
+
+# # Load tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv from the results folder as a pandas dataframe
+# df = pd.read_csv("results/tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv")
+# # Plot the reward curves
+# plot_reward_curve(df, "pong")
+
 
 #
 # Generate mock data for testing the function
@@ -98,3 +101,14 @@ plot_reward_curve(df, "pong")
 
 # # Plot the reward curves
 # plot_reward_curves(df)
+
+def visualize_belief(belief_table):
+    indices = np.argmax(belief_table, axis=1)
+    indices = indices.reshape((5, 5))
+    # display the value in each cell
+    for i in range(5):
+        for j in range(5):
+            plt.text(j, i, indices[i, j], ha='center', va='center', color='black')
+    plt.imshow(indices)
+    plt.colorbar()
+    plt.show()
