@@ -18,7 +18,7 @@ class Sender:
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
         self.alpha = alpha
-        self.q_table = np.zeros((world_size, num_possible_messages))
+        self.belief_table = np.ones((world_size, num_possible_messages)) / num_possible_messages
 
     def choose_action(self, context):
         """
@@ -31,15 +31,13 @@ class Sender:
             return np.random.randint(self.num_possible_messages)
         # Otherwise, use the Q-table to choose the message action with the highest Q-value
         else:
-            return np.argmax(self.q_table[context])
+            return np.random.choice(list(range(self.num_possible_messages)), p=self.belief_table[context])
 
     def learn(self, context, message_action, reward):
         """
-        Update the Q-table based on the reward
+        Update the belief table based on the reward
         """
-        # Get the Q-value for the current context and message action
-        prediction = self.q_table[context, message_action]
-        # Get the Q-value for the next context and the best message action
-        target = reward + np.max(self.q_table[context])
-        # Update the Q-table
-        self.q_table[context, message_action] += self.alpha * (target - prediction)
+        if reward == 1:
+            self.belief_table[context][message_action] += 0.1
+            # Normalize the belief so that the relative frequencies sum to 1
+            self.belief_table[context] /= np.sum(self.belief_table[context])
