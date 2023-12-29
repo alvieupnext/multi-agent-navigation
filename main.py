@@ -102,12 +102,15 @@ def find_sender_message_combinations(C):
     return combinations
 
 
+epsilon_max = 1
+epsilon_min = 0.01
+epsilon_decay = 0.99995
 def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # C = num_messages ** M
     print(f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
-    senders = [Sender(epsilon_s, num_messages, env.world_size, alpha) for _ in range(M)]
-    receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_r)
+    senders = [Sender(epsilon_max, epsilon_min, epsilon_decay, num_messages, env.world_size, alpha) for _ in range(M)]
+    receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_max, epsilon_min, epsilon_decay)
     action = None
     messages = []
     observations, infos = env.reset(options=options)
@@ -137,6 +140,8 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
         if terminations["receiver"] or truncations["receiver"]:
             for sender, message in zip(senders, messages):
                 sender.learn(goal_state, message, reward)
+                sender.update_epsilon()
+            receiver.update_epsilon()
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
             episode_total_steps.append(step + 1)
