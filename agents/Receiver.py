@@ -1,4 +1,3 @@
-import tensorflow as tf
 import numpy as np
 
 
@@ -9,7 +8,7 @@ class Receiver:
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
         self.epsilon = epsilon
-        self.channel_capacity = channel_capacity
+        self.channel_capacity = channel_capacityUn
         self.q_table = np.zeros((world_size, self.channel_capacity, self.number_of_directions))
 
 
