@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 
 
@@ -18,7 +20,7 @@ class Receiver:
             legal_actions = np.where(action_mask_array == 1)[0]
             return np.random.choice(legal_actions)
         else:
-            actions = self.q_table[current_state, message]
+            actions = copy(self.q_table[current_state, message])
             actions[action_mask == 0] = -1
             return np.argmax(actions)
 
