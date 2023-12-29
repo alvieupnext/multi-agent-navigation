@@ -62,7 +62,7 @@ possible_C_values = {
 # Learning steps is 12 million
 learning_steps = 12000000
 # The possible layouts for the environment
-layouts = ["pong", "four_room", "two_room", "flower", "empty_room"]
+layout = "pong"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
 # The possible types ("Q-learning" will be added soon)
 types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
@@ -70,12 +70,11 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
-  # ray.init(address='auto')
-  ray.init()
+  ray.init(address='auto')
+  # ray.init()
   remotes = []
-  for layout in layouts:
-    for type in types:
-      # Get the first character of the type and convert it to an integer
+  for type in types:
+    # Get the first character of the type and convert it to an integer
       if type in sender_receiver or type == "Random":
         if type != "Random":
           M = int(type[0])
@@ -95,4 +94,4 @@ if __name__ == "__main__":
     print("Number of tasks left: ", len(remotes))
     calculated_df = ray.get(done_remote[0])
     df = pd.concat([df, calculated_df], ignore_index=True)
-  df.to_csv(f"tabular_results_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
+  df.to_csv(f"tabular_results_{layout}_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
