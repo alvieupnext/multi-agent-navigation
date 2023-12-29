@@ -4,7 +4,9 @@ import numpy as np
 
 
 class QLearningAgent:
-    def __init__(self, world_size, discount_factor, learning_rate, epsilon):
+    def __init__(self, world_size, discount_factor, learning_rate, epsilon, epsilon_min, decay_rate):
+        self.epsilon_min = epsilon_min
+        self.decay_rate = decay_rate
         self.number_of_directions = 4
         self.q_table = np.zeros((world_size, world_size, self.number_of_directions))
         self.discount_factor = discount_factor
@@ -29,3 +31,6 @@ class QLearningAgent:
 
     def set_goal(self, new_goal_state):
         self.goal_state = new_goal_state
+
+    def update_epsilon(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.decay_rate)

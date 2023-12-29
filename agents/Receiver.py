@@ -5,7 +5,9 @@ import numpy as np
 
 class Receiver:
 
-    def __init__(self, world_size, channel_capacity, discount_factor, learning_rate, epsilon):
+    def __init__(self, world_size, channel_capacity, discount_factor, learning_rate, epsilon, epsilon_min, decay_rate):
+        self.epsilon_min = epsilon_min
+        self.decay_rate = decay_rate
         self.number_of_directions = 4
         self.learning_rate = learning_rate
         self.discount_factor = discount_factor
@@ -28,3 +30,6 @@ class Receiver:
         prediction = self.q_table[current_state, message, action]
         target = reward + self.discount_factor * np.max(self.q_table[next_state, message])
         self.q_table[current_state, message, action] += self.learning_rate * (target - prediction)
+
+    def update_epsilon(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.decay_rate)
