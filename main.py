@@ -2,11 +2,8 @@ from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
 from agents.QLearningAgent import QLearningAgent
-import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import pandas as pd
-from plotting import plot_reward_curves
 
 chosen_layout = env_layouts["pong"]
 env = FiveGrid(illegal_positions=chosen_layout)
@@ -167,9 +164,14 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 # Plot the results
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.7
-#rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
-#rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
-# Generate a plot for the rewards and steps
+# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+# #rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
+# # Generate a plot for the rewards and steps
+# plt.plot(total_steps, rewards)
+# plt.xlabel("Learning Steps")
+# plt.ylabel("Reward")
+# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
+# plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)

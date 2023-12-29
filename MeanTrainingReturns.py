@@ -70,7 +70,8 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
-  ray.init(address='auto')
+  # ray.init(address='auto')
+  ray.init()
   remotes = []
   for layout in layouts:
     for type in types:
@@ -94,4 +95,4 @@ if __name__ == "__main__":
     print("Number of tasks left: ", len(remotes))
     calculated_df = ray.get(done_remote[0])
     df = pd.concat([df, calculated_df], ignore_index=True)
-    df.to_csv(f"results_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
+    df.to_csv(f"tabular_results_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
