@@ -47,7 +47,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     episode_total_steps = []
 
     # Create a progress bar for the learning steps
-    # progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
 
     for step in range(learning_steps):
         current_observation_and_mask = observations["receiver"]
@@ -78,11 +78,11 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
         else:
             observations = next_observations
         # Update the progress bar
-        # progress_bar.update(1)
-        # progress_bar.set_description(f"Q-Learning Step {step}/{learning_steps}")
+        progress_bar.update(1)
+        progress_bar.set_description(f"Q-Learning Step {step}/{learning_steps}")
 
     # Close the progress bar
-    # progress_bar.close()
+    progress_bar.close()
 
     return episodes_rewards, episode_steps, episode_total_steps
 
@@ -124,7 +124,7 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
     episode_total_steps = []
 
     # Create a progress bar for the learning steps
-    # progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
 
     for step in range(learning_steps):
         observation = observations["receiver"]
@@ -149,11 +149,11 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
             observations = next_observations
 
         # Update the progress bar
-        # progress_bar.update(1)
-        # progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
+        progress_bar.update(1)
+        progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
 
     # Close the progress bar
-    # progress_bar.close()
+    progress_bar.close()
 
     return episodes_rewards, episode_steps, episode_total_steps
 
