@@ -12,8 +12,10 @@ class Sender:
     Message actions are selected using an ε-greedy policy.
     """
 
-    def __init__(self, epsilon, num_possible_messages, world_size, alpha):
+    def __init__(self, epsilon, epsilon_min, decay_rate, num_possible_messages, world_size, alpha):
         self.epsilon = epsilon
+        self.epsilon_min = epsilon_min
+        self.decay_rate = decay_rate
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
         self.alpha = alpha
@@ -32,11 +34,14 @@ class Sender:
         else:
             return np.random.choice(list(range(self.num_possible_messages)), p=self.belief_table[context])
 
+    def update_epsilon(self):
+        self.epsilon = max(self.epsilon_min, self.epsilon * self.decay_rate)
+
     def learn(self, context, message_action, reward):
         """
         Update the belief table based on the reward
         """
         if reward == 1:
-            self.belief_table[context][message_action] += 0.1
+            self.belief_table[context][message_action] += 0.5
             # Normalize the belief so that the relative frequencies sum to 1
             self.belief_table[context] /= np.sum(self.belief_table[context])

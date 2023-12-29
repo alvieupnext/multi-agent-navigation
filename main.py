@@ -169,7 +169,7 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 # Plot the results
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.8
-episodes_rewards, episode_steps, episode_total_steps = run_experiment(1, 4, 0.1, 0.05, 0.05, gamma, env, learning_steps//100)
+episodes_rewards, episode_steps, episode_total_steps = run_experiment(1, 4, 0.001, 0.05, 0.05, gamma, env, learning_steps)
 import numpy as np
 #Calculate rolling average with a window of 10000
 rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
