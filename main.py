@@ -2,11 +2,8 @@ from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
 from agents.QLearningAgent import QLearningAgent
-import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-import pandas as pd
-from plotting import plot_reward_curves
 
 chosen_layout = env_layouts["pong"]
 env = FiveGrid(illegal_positions=chosen_layout)
@@ -50,7 +47,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     episode_total_steps = []
 
     # Create a progress bar for the learning steps
-    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+    # progress_bar = tqdm(total=learning_steps, position=0, leave=True)
 
     for step in range(learning_steps):
         current_observation_and_mask = observations["receiver"]
@@ -81,11 +78,11 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
         else:
             observations = next_observations
         # Update the progress bar
-        progress_bar.update(1)
-        progress_bar.set_description(f"Q-Learning Step {step}/{learning_steps}")
+        # progress_bar.update(1)
+        # progress_bar.set_description(f"Q-Learning Step {step}/{learning_steps}")
 
     # Close the progress bar
-    progress_bar.close()
+    # progress_bar.close()
 
     return episodes_rewards, episode_steps, episode_total_steps
 
@@ -127,7 +124,7 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
     episode_total_steps = []
 
     # Create a progress bar for the learning steps
-    progress_bar = tqdm(total=learning_steps, position=0, leave=True)
+    # progress_bar = tqdm(total=learning_steps, position=0, leave=True)
 
     for step in range(learning_steps):
         observation = observations["receiver"]
@@ -152,11 +149,11 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
             observations = next_observations
 
         # Update the progress bar
-        progress_bar.update(1)
-        progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
+        # progress_bar.update(1)
+        # progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
 
     # Close the progress bar
-    progress_bar.close()
+    # progress_bar.close()
 
     return episodes_rewards, episode_steps, episode_total_steps
 
@@ -167,9 +164,14 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 # Plot the results
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.7
-#rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
-#rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
-# Generate a plot for the rewards and steps
+# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
+# #rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
+# # Generate a plot for the rewards and steps
+# plt.plot(total_steps, rewards)
+# plt.xlabel("Learning Steps")
+# plt.ylabel("Reward")
+# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
+# plt.show()
 
 # for lay_out in layouts:
 #     env = FiveGrid(illegal_positions=lay_out)
