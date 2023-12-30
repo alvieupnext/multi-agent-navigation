@@ -30,13 +30,19 @@ layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"
 # 12 million steps
 learning_steps = 12000000
 
+
+
+epsilon_max = 1
+epsilon_min = 0.01
+epsilon_decay = 0.99995
+
 # Flatten an array of messages into a single message (one hot encoding)
 def flatten_messages(messages, num_messages):
     return sum([message * num_messages ** i for i, message in enumerate(messages)])
 
 def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     options = {"termination_probability": 1 - gamma}
-    receiver = QLearningAgent(env.world_size, gamma, learning_rate, epsilon)
+    receiver = QLearningAgent(env.world_size, gamma, learning_rate, epsilon_max, epsilon_min, epsilon_decay)
     action = None
     observations, infos = env.reset(options=options)
     goal_state = env.returnGoal()
@@ -100,11 +106,6 @@ def find_sender_message_combinations(C):
         if M.is_integer():
             combinations.append((N, int(M)))
     return combinations
-
-
-epsilon_max = 1
-epsilon_min = 0.01
-epsilon_decay = 0.99995
 def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # C = num_messages ** M
     print(f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
@@ -153,10 +154,10 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
         else:
             observations = next_observations
 
-    # Check if the sender and receiver have learned the correct policy
-    for sender in senders:
-        print(f"Sender Q-Table: {sender.belief_table}")
-        print(f"Receiver Q-Table: {receiver.q_table}")
+    # # Check if the sender and receiver have learned the correct policy
+    # for sender in senders:
+    #     print(f"Sender Q-Table: {sender.belief_table}")
+    #     print(f"Receiver Q-Table: {receiver.q_table}")
 
         # Update the progress bar
         # progress_bar.update(1)
