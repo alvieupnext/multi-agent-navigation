@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-
+import matplotlib.colors as mcolors
 
 def plot_reward_curves(pdDataframe):
     """
@@ -112,3 +112,29 @@ def visualize_belief(belief_table):
     plt.imshow(indices)
     plt.colorbar()
     plt.show()
+
+def visualize_receiver_policy(q_table, world_size, channel_capacity, message):
+    dimensions = int(world_size**(1/2))
+    policy_table = np.argmax(q_table[:, message, :], axis=1).reshape((dimensions, dimensions))
+    directions = {
+        0: (0, -0.3),  # Up
+        1: (0, 0.3),  # Down
+        2: (0.3, 0),  # Right
+        3: (-0.3, 0)  # Left
+    }
+
+    for i in range(dimensions):
+        for j in range(dimensions):
+            dx, dy = directions[policy_table[i, j]]
+            plt.arrow(j-dx, i-dy, dx*2, dy*2, head_width=0.1, head_length=0.1, fc='k', ec='k')
+    plt.imshow(policy_table)
+    plt.title("C = %s" % channel_capacity)
+    plt.show()
+
+# Example usage (assuming you have a Q-table named q_table):
+# visualize_q_table(q_table)
+
+# Example for visualising the receiver's policy given a q-table with random values
+# q_table = np.random.randint(0, 20, (25, 3, 4))
+# print(str(q_table))
+# visualize_receiver_policy(q_table, 25, 3, 2)
