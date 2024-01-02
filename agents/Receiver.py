@@ -15,7 +15,6 @@ class Receiver:
         self.channel_capacity = channel_capacity
         self.q_table = np.zeros((world_size, self.channel_capacity, self.number_of_directions))
 
-
     def choose_action(self, current_state, message, action_mask):
         if np.random.rand() < self.epsilon:
             action_mask_array = np.array(action_mask)

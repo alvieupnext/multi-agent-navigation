@@ -13,6 +13,7 @@ class Sender:
     """
 
     def __init__(self, epsilon, epsilon_min, decay_rate, num_possible_messages, world_size, alpha):
+        self.alpha = None
         self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.decay_rate = decay_rate

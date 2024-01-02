@@ -25,20 +25,21 @@ epsilon_r_values = [0.01, 0.05, 0.1]
 # The receiver's Q-learning discount factor
 gamma_values = [0.7, 0.8, 0.9]
 # The possible layouts for the environment
-layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"], env_layouts["empty_room"]]
+layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"],
+           env_layouts["empty_room"]]
 
 # 12 million steps
 learning_steps = 12000000
-
-
 
 epsilon_max = 1
 epsilon_min = 0.01
 epsilon_decay = 0.99995
 
+
 # Flatten an array of messages into a single message (one hot encoding)
 def flatten_messages(messages, num_messages):
     return sum([message * num_messages ** i for i, message in enumerate(messages)])
+
 
 def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
     options = {"termination_probability": 1 - gamma}
@@ -57,20 +58,20 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 
     for step in range(learning_steps):
         current_observation_and_mask = observations["receiver"]
-        #print("current_observation_and_mask: " + str(current_observation_and_mask))
+        # print("current_observation_and_mask: " + str(current_observation_and_mask))
         current_observation = current_observation_and_mask["observation"]
-        #print("current_observation: " + str(current_observation))
+        # print("current_observation: " + str(current_observation))
         current_mask = current_observation_and_mask["action_mask"]
-        #print("current_mask: " + str(current_mask))
+        # print("current_mask: " + str(current_mask))
         action = receiver.choose_action(current_observation, current_mask)
-        #print("action: " + str(action))
+        # print("action: " + str(action))
         next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
         reward = rewards["receiver"]
-        #print("reward: " + str(reward))
+        # print("reward: " + str(reward))
         next_observation_and_mask = next_observations["receiver"]
-        #print("next_observation_and_mask: " + str(next_observation_and_mask))
+        # print("next_observation_and_mask: " + str(next_observation_and_mask))
         next_observation = next_observation_and_mask["observation"]
-        #print("next_observation: " + str(next_observation))
+        # print("next_observation: " + str(next_observation))
         receiver.learn(current_observation, action, reward, next_observation)
 
         if terminations["receiver"] or truncations["receiver"]:
@@ -80,7 +81,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
             observations, infos = env.reset(options=options)
             goal_state = env.returnGoal()
             receiver.set_goal(goal_state)
-            #print("end of episode")
+            # print("end of episode")
         else:
             observations = next_observations
         # Update the progress bar
@@ -94,21 +95,25 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 
     # Any additional logic or cleanup
 
-def find_sender_message_combinations(C):
-    """
-    Find all combinations of senders and messages where the number of channels (C) is equal to N^M.
-    """
-    combinations = []
-    # We check up to C because we can have a maximum of C senders each sending 1 message.
-    for N in range(1, C + 1):
-        # M = C^(1/N) -> Check if M is an integer
-        M = C ** (1 / N)
-        if M.is_integer():
-            combinations.append((N, int(M)))
-    return combinations
+
+# def find_sender_message_combinations(C):
+#     """
+#     Find all combinations of senders and messages where the number of channels (C) is equal to N^M.
+#     """
+#     combinations = []
+#     # We check up to C because we can have a maximum of C senders each sending 1 message.
+#     for N in range(1, C + 1):
+#         # M = C^(1/N) -> Check if M is an integer
+#         M = C ** (1 / N)
+#         if M.is_integer():
+#             combinations.append((N, int(M)))
+#     return combinations
+
+
 def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # C = num_messages ** M
-    print(f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
+    print(
+        f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
     senders = [Sender(epsilon_max, epsilon_min, epsilon_decay, num_messages, env.world_size, alpha) for _ in range(M)]
     receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_max, epsilon_min, epsilon_decay)
@@ -136,7 +141,7 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
         next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
         reward = rewards["receiver"]
         next_observation = next_observations["receiver"]
-        receiver.learn(observation["observation"], message,action, reward, next_observation["observation"])
+        receiver.learn(observation["observation"], message, action, reward, next_observation["observation"])
 
         if terminations["receiver"] or truncations["receiver"]:
             for sender, message in zip(senders, messages):
@@ -159,9 +164,9 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
     #     print(f"Sender Q-Table: {sender.belief_table}")
     #     print(f"Receiver Q-Table: {receiver.q_table}")
 
-        # Update the progress bar
-        # progress_bar.update(1)
-        # progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
+    # Update the progress bar
+    # progress_bar.update(1)
+    # progress_bar.set_description(f"Step {step}/{learning_steps}, M: {M}, Number Of Possible Messages: {num_messages}")
 
     # Close the progress bar
     # progress_bar.close()
@@ -211,9 +216,6 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 #                             run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps)
 
 
-
-
-
 # #Generate a generic loop for the environment using an agent that does random actions
 # # Path: main.py
 # # Compare this snippet from agents/Receiver.py:
@@ -240,4 +242,3 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 #     print("Receiver reward: " + str(rewards["receiver"]))
 #     # Render the environment
 #     env.render()
-

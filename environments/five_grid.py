@@ -3,7 +3,12 @@ from copy import copy
 from numpy import int8
 import numpy as np
 
+
 # The first environment from the assignment
+def action_space(agent):
+    return 4
+
+
 class FiveGrid:
     metadata = {
         "name": "five_grid",
@@ -36,18 +41,17 @@ class FiveGrid:
         self.timestep = 0
         self.ptem = 0
 
-   # Generate an observation with their agent mask
+    # Generate an observation with their agent mask
     def generateObservation(self):
-        #Get the flattened position of the agent
+        # Get the flattened position of the agent
         agent_position = self.flattenPosition(self.receiver[0], self.receiver[1])
         # Generate the observation for the agents
-            # self.observation[agent] = self.agents[agent][0] + self.grid_size[1] * self.agents[agent][1]
+        # self.observation[agent] = self.agents[agent][0] + self.grid_size[1] * self.agents[agent][1]
         return {"observation": agent_position, "action_mask": self.mask_mapping[agent_position]}
 
     # Returns the goal position flattened and translated
     def returnGoal(self):
         return self.flattenPosition(self.goal[0], self.goal[1])
-
 
     def flattenPosition(self, x, y):
         return x + self.grid_size[1] * y
@@ -95,32 +99,30 @@ class FiveGrid:
         mask_mapping = {}
         # For every state, use the mapping to retreive the translated state
         for state in range(num_states):
-                # Get the x and y coordinates of the translated state
-                x, y = self.unflattenPosition(state)
-                # Generate the action mask
-                action_mask = np.ones(4, dtype=int8)
-                # Out of bounds up
-                if y == 0:
-                    action_mask[0] = 0
-                # Out of bounds down
-                elif y == self.grid_size[1] - 1:
-                    action_mask[1] = 0
-                # Out of bounds left
-                if x == 0:
-                    action_mask[3] = 0
-                # Out of bounds right
-                elif x == self.grid_size[0] - 1:
-                    action_mask[2] = 0
-                # Generate possible next positions
-                possible_next_positions = [(x, y - 1), (x, y + 1), (x + 1, y), (x - 1, y)]
-                for i, possible_next_position in enumerate(possible_next_positions):
-                    # If the possible next position is an illegal position, set the action mask to 0
-                    if possible_next_position in self.illegal_positions:
-                        action_mask[i] = 0
-                mask_mapping[state] = action_mask
+            # Get the x and y coordinates of the translated state
+            x, y = self.unflattenPosition(state)
+            # Generate the action mask
+            action_mask = np.ones(4, dtype=int8)
+            # Out of bounds up
+            if y == 0:
+                action_mask[0] = 0
+            # Out of bounds down
+            elif y == self.grid_size[1] - 1:
+                action_mask[1] = 0
+            # Out of bounds left
+            if x == 0:
+                action_mask[3] = 0
+            # Out of bounds right
+            elif x == self.grid_size[0] - 1:
+                action_mask[2] = 0
+            # Generate possible next positions
+            possible_next_positions = [(x, y - 1), (x, y + 1), (x + 1, y), (x - 1, y)]
+            for i, possible_next_position in enumerate(possible_next_positions):
+                # If the possible next position is an illegal position, set the action mask to 0
+                if possible_next_position in self.illegal_positions:
+                    action_mask[i] = 0
+            mask_mapping[state] = action_mask
         return mask_mapping
-
-
 
     def step(self, actions):
         """Takes in an action for the current agent (specified by agent_selection).
@@ -180,7 +182,7 @@ class FiveGrid:
             if terminations[agent] or truncations[agent]:
                 self.agents.remove(agent)
 
-        #Return the observations, rewards, terminations, truncations and infos
+        # Return the observations, rewards, terminations, truncations and infos
         return observations, rewards, terminations, truncations, infos
 
     def render(self):
@@ -194,18 +196,14 @@ class FiveGrid:
         print(f"{grid}\n")
 
     def observation_space(self, agent):
-        return self.num_states
-
-    def action_space(self, agent):
         return 4
 
-#Here, we define the possible lay-outs
-pong = [(0,1), (0,2), (0,3), (2,0), (2,1), (2,3), (2,4), (4,1), (4,2), (4,3)]
-four_room = [(0,2), (1,2), (3,2), (4,2), (2,0), (2,4)]
-two_room = [(2,0), (2,1), (2,3), (2,4)]
-flower = [(0,2), (2, 0), (4,2), (2,4)]
 
-#Make a dictionary for the lay-outs
+# Here, we define the possible lay-outs
+pong = [(0, 1), (0, 2), (0, 3), (2, 0), (2, 1), (2, 3), (2, 4), (4, 1), (4, 2), (4, 3)]
+four_room = [(0, 2), (1, 2), (3, 2), (4, 2), (2, 0), (2, 4)]
+two_room = [(2, 0), (2, 1), (2, 3), (2, 4)]
+flower = [(0, 2), (2, 0), (4, 2), (2, 4)]
+
+# Make a dictionary for the lay-outs
 layouts = {"pong": pong, "four_room": four_room, "two_room": two_room, "flower": flower, "empty_room": []}
-
-
