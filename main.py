@@ -37,9 +37,22 @@ epsilon_min = 0.001
 epsilon_decay = 0.9999951365
 
 
-# Flatten an array of messages into a single message (one hot encoding)
+# # Flatten an array of messages into a single message (one hot encoding)
 def flatten_messages(messages, num_messages):
     return sum([message * num_messages ** i for i, message in enumerate(messages)])
+
+print(flatten_messages([1, 1], 8))
+
+# def flatten_messages(messages, base):
+#     print(messages)
+#     unique_integer = 0
+#
+#     for message in messages:
+#         unique_integer = unique_integer * base + message
+#
+#     print(unique_integer)
+#
+#     return unique_integer
 
 
 def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
@@ -157,6 +170,7 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
             messages = []
             for sender in senders:
                 messages.append(sender.choose_action(goal_state))
+            message = flatten_messages(messages, num_messages)
         else:
             observations = next_observations
 
@@ -182,19 +196,20 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 
 # Generate a plot for the rewards and steps
 
+import numpy as np
 # Plot the results
 env = FiveGrid(illegal_positions=chosen_layout)
 gamma = 0.8
-episodes_rewards, episode_steps, episode_total_steps = run_experiment(1, 25, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
+episodes_rewards, episode_steps, episode_total_steps = run_experiment(2, 2, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
 # import numpy as np
-# #Calculate rolling average with a window of 10000
-# rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
-# plt.plot(rolling_average)
-#
-# plt.xlabel("Learning Steps")
-# plt.ylabel("Reward")
-# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
-# plt.show()
+#Calculate rolling average with a window of 10000
+rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
+plt.plot(rolling_average)
+
+plt.xlabel("Learning Steps")
+plt.ylabel("Reward")
+plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
+plt.show()
 
 
 # rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)

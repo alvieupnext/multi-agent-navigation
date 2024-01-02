@@ -49,7 +49,7 @@ class Sender:
         return np.argmax(samples)
 
     def update_epsilon(self):
-        print(f"Current epsilon in the sender: {self.epsilon}")
+        # print(f"Current epsilon in the sender: {self.epsilon}")
         self.epsilon = max(self.epsilon_min, self.epsilon * self.decay_rate)
 
     # def learn(self, context, message_action, reward):
