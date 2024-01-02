@@ -2,10 +2,11 @@ from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
 from agents.QLearningAgent import QLearningAgent
+from plotting import visualize_belief, visualize_receiver_policy, visualize_thompson
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-chosen_layout = env_layouts["pong"]
+chosen_layout = env_layouts["empty_room"]
 env = FiveGrid(illegal_positions=chosen_layout)
 
 # The hyperparameters
@@ -32,8 +33,8 @@ layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"
 learning_steps = 12000000
 
 epsilon_max = 1
-epsilon_min = 0.01
-epsilon_decay = 0.99995
+epsilon_min = 0.001
+epsilon_decay = 0.9999951365
 
 
 # Flatten an array of messages into a single message (one hot encoding)
@@ -113,7 +114,7 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
     # C = num_messages ** M
     print(
-        f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_s: {epsilon_s}, epsilon_r: {epsilon_r}, gamma: {gamma}")
+        f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_max = {epsilon_max}, epsilon_min = {epsilon_min} gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
     senders = [Sender(epsilon_max, epsilon_min, epsilon_decay, num_messages, env.world_size, alpha) for _ in range(M)]
     receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_max, epsilon_min, epsilon_decay)
@@ -170,7 +171,11 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 
     # Close the progress bar
     # progress_bar.close()
-
+    # Visualize the belief table
+    for sender in senders:
+        visualize_thompson(sender.alphas, sender.betas, num_messages, chosen_layout)
+    for message in range(num_messages ** M):
+        visualize_receiver_policy(receiver.q_table, env.world_size, num_messages ** M, message, chosen_layout)
     return episodes_rewards, episode_steps, episode_total_steps
 
     # Any additional logic or cleanup
@@ -178,9 +183,9 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
 # Generate a plot for the rewards and steps
 
 # Plot the results
-# env = FiveGrid(illegal_positions=chosen_layout)
-# gamma = 0.8
-# episodes_rewards, episode_steps, episode_total_steps = run_experiment(1, 4, 0.001, 0.05, 0.05, gamma, env, learning_steps)
+env = FiveGrid(illegal_positions=chosen_layout)
+gamma = 0.8
+episodes_rewards, episode_steps, episode_total_steps = run_experiment(1, 25, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
 # import numpy as np
 # #Calculate rolling average with a window of 10000
 # rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
