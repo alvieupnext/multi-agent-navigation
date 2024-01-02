@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.colors as mcolors
+from scipy.stats import beta
 
 
 def plot_reward_curves(pdDataframe):
@@ -144,11 +145,11 @@ df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
 # plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
 
 def visualize_belief(belief_table, layout):
+    print(belief_table)
     indices = np.argmax(belief_table, axis=1)
     # get max index
     wall = np.max(indices) + 1
     indices = indices.reshape((5, 5))
-    print(indices)
     # display the value in each cell
     for i in range(5):
         for j in range(5):
@@ -157,6 +158,27 @@ def visualize_belief(belief_table, layout):
             else:
                 plt.text(j, i, indices[i, j], ha='center', va='center', color='black')
     plt.imshow(indices)
+    plt.colorbar()
+    plt.show()
+
+
+def visualize_thompson(alphas, betas, num_messages, layout):
+    print(f"Alphas: {alphas}")
+    print(f"Betas: {betas}")
+    messages = np.zeros(25)
+    for i in range(25):
+        samples = [beta.rvs(alphas[i][a], betas[i][a]) for a in range(num_messages)]
+        messages[i] = np.argmax(samples)
+    messages = messages.reshape((5, 5))
+    wall = np.max(messages) + 1
+    # display the value in each cell
+    for i in range(5):
+        for j in range(5):
+            if (j, i) in layout:
+                messages[i, j] = wall
+            else:
+                plt.text(j, i, messages[i, j], ha='center', va='center', color='black')
+    plt.imshow(messages)
     plt.colorbar()
     plt.show()
 
@@ -171,7 +193,7 @@ def visualize_receiver_policy(q_table, world_size, channel_capacity, message, la
         3: (-0.3, 0)  # Left
     }
     wall = 4
-
+    print(q_table)
     for i in range(dimensions):
         for j in range(dimensions):
             if (j, i) in layout:
