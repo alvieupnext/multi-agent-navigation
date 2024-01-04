@@ -9,23 +9,24 @@ columns = ["Episode", "Reward", "Steps", "TotalSteps", "C", "Type", "Env"]
 
 
 @ray.remote
-def run_training(type, C, eta, epsilon_s, epsilon_r, gamma, layout, learning_steps):
+def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps):
   # Create a new pandas dataframe to store the results
   # Get the correct lay-out
   env = FiveGrid(illegal_positions=env_layouts[layout])
   if type == "Q-learning":
-    rewards, steps, total_steps = run_q_agent(gamma, epsilon_r, 0.001, env, learning_steps)
+    rewards, steps, total_steps = run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, eta,env, learning_steps)
     pass
   elif type == "Random":
     # Use a single sender with epsilon = 1
-    rewards, steps, total_steps = run_experiment(1, C, eta, 1, epsilon_r, gamma, env, learning_steps)
+    rewards, steps, total_steps = run_experiment(1, C, eta, epsilon_max, epsilon_min,
+                                                 epsilon_decay, gamma, env, learning_steps)
   else: # Type with senders and receivers
     # Types are of the kind 5S-1R, 4S-1R, 3S-1R, 2S-1R, 1S-1R
     # Get the first character of the type and convert it to an integer
     M = int(type[0])
     num_messages = int(C ** (1 / M))
     # Run the experiment
-    rewards, steps, total_steps = run_experiment(M, num_messages, eta, epsilon_s, epsilon_r, gamma, env, learning_steps)
+    rewards, steps, total_steps = run_experiment(M, num_messages, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps)
   # Generate a type from the M value
   # Create a dataframe from the results
   df = pd.DataFrame(list(zip(rewards, steps, total_steps)), columns=["Reward", "Steps", "TotalSteps"])
@@ -43,26 +44,26 @@ def run_training(type, C, eta, epsilon_s, epsilon_r, gamma, layout, learning_ste
 eta = 1e-4
 # Gamma is 0.8
 gamma = 0.8
-# Epsilon_r is 0.05
-epsilon_r = 0.05
-# Epsilon_s is 0.05
-epsilon_s = 0.05
+# Epsilon values for the receiver
+epsilon_max = 1
+epsilon_min = 0.001
+epsilon_decay = 0.9999951365
 # C (excluding 27,32,36,64)
-C = [3,4,5,8,9,16,25, 32]
+C = [3,4,5,8,9,16,25,27,32,36,64]
 # Possible combintions
 M = 5
 
 possible_C_values = {
-    1: [3, 4, 5, 8, 9, 16, 25, 32],
-    2: [4, 9, 16, 25],
-    3: [8],
+    1: [3, 4, 5, 8, 9, 16, 25, 27, 32, 36, 64],
+    2: [4, 9, 16, 25, 36, 64],
+    3: [8, 27, 64],
     4: [16],
     5: [32]
 }
 # Learning steps is 12 million
-learning_steps = 12000000
+learning_steps = 1200
 # The possible layouts for the environment
-layout = "flower"
+layout = "pong"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
 # The possible types ("Q-learning" will be added soon)
 types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
@@ -83,9 +84,9 @@ if __name__ == "__main__":
         # Get the possible C values for the type
         possible_C = possible_C_values[M]
         for C in possible_C:
-          remotes.append(run_training.remote(type, C, eta, epsilon_s, epsilon_r, gamma, layout, learning_steps))
+          remotes.append(run_training.remote(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps))
       else: #Q-learner
-        remotes.append(run_training.remote(type, 1, eta, epsilon_s, epsilon_r, gamma, layout, learning_steps))
+        remotes.append(run_training.remote(type, 1, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps))
     # Create a new dataframe to store all the results
   df = pd.DataFrame(columns=columns)
   while len(remotes):
@@ -94,4 +95,4 @@ if __name__ == "__main__":
     print("Number of tasks left: ", len(remotes))
     calculated_df = ray.get(done_remote[0])
     df = pd.concat([df, calculated_df], ignore_index=True)
-  df.to_csv(f"tabular_results_{layout}_{eta}_{epsilon_s}_{epsilon_r}_{gamma}_{learning_steps}.csv")
+  df.to_csv(f"tabular_results_{layout}_{eta}_{epsilon_max}_{epsilon_min}_{epsilon_decay}_{gamma}_{learning_steps}.csv")

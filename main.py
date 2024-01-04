@@ -32,16 +32,10 @@ layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"
 # 12 million steps
 learning_steps = 12000000
 
-epsilon_max = 1
-epsilon_min = 0.001
-epsilon_decay = 0.9999951365
-
 
 # # Flatten an array of messages into a single message (one hot encoding)
 def flatten_messages(messages, num_messages):
     return sum([message * num_messages ** i for i, message in enumerate(messages)])
-
-print(flatten_messages([1, 1], 8))
 
 # def flatten_messages(messages, base):
 #     print(messages)
@@ -55,7 +49,7 @@ print(flatten_messages([1, 1], 8))
 #     return unique_integer
 
 
-def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
+def run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, learning_rate, env, learning_steps):
     options = {"termination_probability": 1 - gamma}
     receiver = QLearningAgent(env.world_size, gamma, learning_rate, epsilon_max, epsilon_min, epsilon_decay)
     action = None
@@ -124,12 +118,12 @@ def run_q_agent(gamma, epsilon, learning_rate, env, learning_steps):
 #     return combinations
 
 
-def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, learning_steps):
+def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps):
     # C = num_messages ** M
     print(
-        f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_max = {epsilon_max}, epsilon_min = {epsilon_min} gamma: {gamma}")
+        f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_max = {epsilon_max}, epsilon_min = {epsilon_min}, decay_rate = {epsilon_decay} gamma: {gamma}")
     options = {"termination_probability": 1 - gamma}
-    senders = [Sender(epsilon_max, epsilon_min, epsilon_decay, num_messages, env.world_size, alpha) for _ in range(M)]
+    senders = [Sender(num_messages, env.world_size, alpha) for _ in range(M)]
     receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_max, epsilon_min, epsilon_decay)
     action = None
     messages = []
@@ -160,7 +154,6 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
         if terminations["receiver"] or truncations["receiver"]:
             for sender, message in zip(senders, messages):
                 sender.learn(goal_state, message, reward)
-                sender.update_epsilon()
             receiver.update_epsilon()
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
@@ -186,30 +179,30 @@ def run_experiment(M, num_messages, alpha, epsilon_s, epsilon_r, gamma, env, lea
     # Close the progress bar
     # progress_bar.close()
     # Visualize the belief table
-    for sender in senders:
-        visualize_thompson(sender.alphas, sender.betas, num_messages, chosen_layout)
-    for message in range(num_messages ** M):
-        visualize_receiver_policy(receiver.q_table, env.world_size, num_messages ** M, message, chosen_layout)
+    # for sender in senders:
+    #     visualize_thompson(sender.alphas, sender.betas, num_messages, chosen_layout)
+    # for message in range(num_messages ** M):
+    #     visualize_receiver_policy(receiver.q_table, env.world_size, num_messages ** M, message, chosen_layout)
     return episodes_rewards, episode_steps, episode_total_steps
 
     # Any additional logic or cleanup
 
 # Generate a plot for the rewards and steps
 
-import numpy as np
-# Plot the results
-env = FiveGrid(illegal_positions=chosen_layout)
-gamma = 0.8
-episodes_rewards, episode_steps, episode_total_steps = run_experiment(2, 2, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
 # import numpy as np
-#Calculate rolling average with a window of 10000
-rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
-plt.plot(rolling_average)
-
-plt.xlabel("Learning Steps")
-plt.ylabel("Reward")
-plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
-plt.show()
+# # Plot the results
+# env = FiveGrid(illegal_positions=chosen_layout)
+# gamma = 0.8
+# episodes_rewards, episode_steps, episode_total_steps = run_experiment(2, 2, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
+# # import numpy as np
+# #Calculate rolling average with a window of 10000
+# rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
+# plt.plot(rolling_average)
+#
+# plt.xlabel("Learning Steps")
+# plt.ylabel("Reward")
+# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
+# plt.show()
 
 
 # rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)

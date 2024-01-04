@@ -13,11 +13,8 @@ class Sender:
     Message actions are selected using an ε-greedy policy.
     """
 
-    def __init__(self, epsilon, epsilon_min, decay_rate, num_possible_messages, world_size, alpha):
+    def __init__(self, num_possible_messages, world_size, alpha):
         self.alpha = None
-        self.epsilon = epsilon
-        self.epsilon_min = epsilon_min
-        self.decay_rate = decay_rate
         self.num_possible_messages = num_possible_messages
         self.world_size = world_size
         self.alpha = alpha
@@ -47,10 +44,6 @@ class Sender:
         """
         samples = [beta.rvs(self.alphas[context][a], self.betas[context][a]) for a in range(self.num_possible_messages)]
         return np.argmax(samples)
-
-    def update_epsilon(self):
-        # print(f"Current epsilon in the sender: {self.epsilon}")
-        self.epsilon = max(self.epsilon_min, self.epsilon * self.decay_rate)
 
     # def learn(self, context, message_action, reward):
     #     """
