@@ -15,7 +15,6 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
   env = FiveGrid(illegal_positions=env_layouts[layout])
   if type == "Q-learning":
     rewards, steps, total_steps = run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, eta,env, learning_steps)
-    pass
   elif type == "Random":
     # Use a single sender with epsilon = 1
     rewards, steps, total_steps = run_experiment(1, C, eta, epsilon_max, epsilon_min,
