@@ -83,6 +83,7 @@ def run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, learning_rate, e
         receiver.learn(current_observation, action, reward, next_observation)
 
         if terminations["receiver"] or truncations["receiver"]:
+            receiver.update_epsilon()
             episode_steps.append(env.timestep)
             episodes_rewards.append(reward)
             episode_total_steps.append(step + 1)
