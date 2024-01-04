@@ -45,6 +45,13 @@ class Sender:
         samples = [beta.rvs(self.alphas[context][a], self.betas[context][a]) for a in range(self.num_possible_messages)]
         return np.argmax(samples)
 
+    def choose_action_random(self):
+        """
+        Choose an action randomly
+        :return: the chosen action
+        """
+        return np.random.randint(self.num_possible_messages)
+
     # def learn(self, context, message_action, reward):
     #     """
     #     Update the belief table based on the reward
