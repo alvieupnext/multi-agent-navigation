@@ -6,31 +6,31 @@ from plotting import visualize_belief, visualize_receiver_policy, visualize_thom
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-chosen_layout = env_layouts["empty_room"]
-env = FiveGrid(illegal_positions=chosen_layout)
-
-# The hyperparameters
-# Amount of sender agents
-M_values = [1, 2, 3, 4, 5]
-# Channel capacity (amount of messages each sender can send)
-C_values = [3, 4, 5, 8, 9, 16, 25, 27, 32, 36, 64]
-# The learning rate for RMSprop, which is an optimization algorithm used to adjust weights in the learning process.
-# Listed but not used in the paper: 5e-5
-eta_values = [1e-4, 5e-4, 1e-3]
-# The epsilon values for the sender
-# Listed but not used in the paper: 0.1, 0.15
-epsilon_s_values = [0.01, 0.05]
-# The epsilon values for the receiver
-# Listed but not used in the paper: 0.15
-epsilon_r_values = [0.01, 0.05, 0.1]
-# The receiver's Q-learning discount factor
-gamma_values = [0.7, 0.8, 0.9]
-# The possible layouts for the environment
-layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"],
-           env_layouts["empty_room"]]
-
-# 12 million steps
-learning_steps = 12000000
+# chosen_layout = env_layouts["empty_room"]
+# env = FiveGrid(illegal_positions=chosen_layout)
+#
+# # The hyperparameters
+# # Amount of sender agents
+# M_values = [1, 2, 3, 4, 5]
+# # Channel capacity (amount of messages each sender can send)
+# C_values = [3, 4, 5, 8, 9, 16, 25, 27, 32, 36, 64]
+# # The learning rate for RMSprop, which is an optimization algorithm used to adjust weights in the learning process.
+# # Listed but not used in the paper: 5e-5
+# eta_values = [1e-4, 5e-4, 1e-3]
+# # The epsilon values for the sender
+# # Listed but not used in the paper: 0.1, 0.15
+# epsilon_s_values = [0.01, 0.05]
+# # The epsilon values for the receiver
+# # Listed but not used in the paper: 0.15
+# epsilon_r_values = [0.01, 0.05, 0.1]
+# # The receiver's Q-learning discount factor
+# gamma_values = [0.7, 0.8, 0.9]
+# # The possible layouts for the environment
+# layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"],
+#            env_layouts["empty_room"]]
+#
+# # 12 million steps
+# learning_steps = 12000000
 
 
 # # Flatten an array of messages into a single message (one hot encoding)
@@ -119,7 +119,7 @@ def run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, learning_rate, e
 #     return combinations
 
 
-def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps):
+def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps, random=False):
     # C = num_messages ** M
     print(
         f"M: {M}, Number Of Possible Messages: {num_messages}, alpha: {alpha}, epsilon_max = {epsilon_max}, epsilon_min = {epsilon_min}, decay_rate = {epsilon_decay} gamma: {gamma}")
@@ -132,7 +132,10 @@ def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_dec
     goal_state = env.returnGoal()
 
     for sender in senders:
-        messages.append(sender.choose_action(goal_state))
+        if random:
+            messages.append(sender.choose_action_random())
+        else:
+            messages.append(sender.choose_action(goal_state))
 
     # Flatten the messages into a single message
     message = flatten_messages(messages, num_messages)
@@ -163,7 +166,10 @@ def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_dec
             goal_state = env.returnGoal()
             messages = []
             for sender in senders:
-                messages.append(sender.choose_action(goal_state))
+                if random:
+                    messages.append(sender.choose_action_random())
+                else:
+                    messages.append(sender.choose_action(goal_state))
             message = flatten_messages(messages, num_messages)
         else:
             observations = next_observations

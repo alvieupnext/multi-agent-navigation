@@ -9,7 +9,7 @@ columns = ["Episode", "Reward", "Steps", "TotalSteps", "C", "Type", "Env"]
 
 
 @ray.remote
-def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps):
+def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps, random=False):
   # Create a new pandas dataframe to store the results
   # Get the correct lay-out
   env = FiveGrid(illegal_positions=env_layouts[layout])
@@ -18,7 +18,7 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
   elif type == "Random":
     # Use a single sender with epsilon = 1
     rewards, steps, total_steps = run_experiment(1, C, eta, epsilon_max, epsilon_min,
-                                                 epsilon_decay, gamma, env, learning_steps)
+                                                 epsilon_decay, gamma, env, learning_steps, random)
   else: # Type with senders and receivers
     # Types are of the kind 5S-1R, 4S-1R, 3S-1R, 2S-1R, 1S-1R
     # Get the first character of the type and convert it to an integer
@@ -49,7 +49,7 @@ epsilon_min = 0.001
 epsilon_decay = 0.9999951365
 # C (excluding 27,32,36,64)
 C = [3,4,5,8,9,16,25,27,32,36,64]
-# Possible combintions
+# Possible combinations
 M = 5
 
 possible_C_values = {
@@ -59,10 +59,10 @@ possible_C_values = {
     4: [16],
     5: [32]
 }
-# Learning steps is 12 million
-learning_steps = 4000000
+# Learning steps is 4 million
+learning_steps = 4_000_000
 # The possible layouts for the environment
-layout = "four_room"
+layout = "pong"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
 # The possible types ("Q-learning" will be added soon)
 types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
@@ -70,20 +70,20 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
-  ray.init(address='auto')
-  # ray.init()
+  # ray.init(address='auto')
+  ray.init()
   remotes = []
   for type in types:
     # Get the first character of the type and convert it to an integer
-      if type in sender_receiver or type == "Random":
-        if type != "Random":
-          M = int(type[0])
-        else:
-          M = 1
+      if type in sender_receiver:
+        M = int(type[0])
         # Get the possible C values for the type
         possible_C = possible_C_values[M]
         for C in possible_C:
           remotes.append(run_training.remote(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps))
+      elif type == "Random":
+        for C in possible_C_values[1]:
+          remotes.append(run_training.remote(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps, random=True))
       else: #Q-learner
         remotes.append(run_training.remote(type, 1, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, layout, learning_steps))
     # Create a new dataframe to store all the results

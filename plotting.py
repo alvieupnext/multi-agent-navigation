@@ -19,7 +19,7 @@ environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
 gamma = 0.8
 
 
-def plot_reward_curve(pdDataframe, environment, gamma=0.99):
+def plot_reward_curve(pdDataframe, environment):
     settings = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning", "Max"]
     fig, ax = plt.subplots()
 
@@ -27,19 +27,22 @@ def plot_reward_curve(pdDataframe, environment, gamma=0.99):
         data = pdDataframe[pdDataframe["Type"] == setting]
 
         # Group by TotalSteps and get for each group the mean and standard deviation of the DiscountedReward
-        grouped_data = data.groupby("TotalSteps")["DiscountedReward"].agg(["mean", "std"]).reset_index()
+        grouped_data = data.groupby("TotalSteps")["DiscountedReward"].agg(["mean"]).reset_index()
+
+        # print(grouped_data["mean"])
+        # print(grouped_data["std"])
 
         # Calculate the rolling mean and standard deviation
-        rolling_mean = grouped_data["mean"].rolling(window=1000).mean()
-        rolling_std = grouped_data["std"].rolling(window=1000).mean()
+        rolling_mean = grouped_data["mean"].rolling(window=50000).mean()
+        # rolling_std = grouped_data["std"].rolling(window=500).mean()
         # Plot mean and error zone
         ax.plot(grouped_data['TotalSteps'], rolling_mean, label=setting)
-        ax.fill_between(grouped_data['TotalSteps'], rolling_mean - rolling_std, rolling_mean + rolling_std, alpha=0.5)
+        # ax.fill_between(grouped_data['TotalSteps'], rolling_mean - rolling_std, rolling_mean + rolling_std, alpha=1)
 
     ax.set_title(f"Reward curves with error zones for {environment}")
     ax.set_xlabel("Steps")
     ax.set_ylabel("Reward")
-    ax.legend()
+    # ax.legend()
     plt.show()
 
 
@@ -68,7 +71,7 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
         ax.set_xticklabels(grouped_data['C'])
 
         if ax.get_subplotspec().is_first_col():
-            ax.set_ylabel("Average Return")
+            ax.set_ylabel("Average Return*")
 
     plt.tight_layout()
     plt.show()
@@ -102,46 +105,51 @@ environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
 settings = ['5S-1R']
 channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
 
-# Create an empty DataFrame
-df = pd.DataFrame()
+# # Create an empty DataFrame
+# df = pd.DataFrame()
+#
+# # Populate the DataFrame
+# for env in environments:
+#     for setting in settings:
+#         for c in channel_capacity:
+#             # Generate a linearly increasing reward with some noise
+#             reward = np.linspace(0, 1, num_episodes) + np.random.normal(0, 0.1, num_episodes)
+#             reward = np.clip(reward, 0, 1)  # Ensure rewards are between 0 and 1
+#
+#             # Generate other columns
+#             episodes = np.arange(0, num_episodes)
+#             steps = np.random.randint(1, 100, num_episodes)
+#             total_steps = np.cumsum(steps)
+#
+#             # Create a temp DataFrame and append to the main DataFrame
+#             temp_df = pd.DataFrame({
+#                 'Episodes': episodes,
+#                 'Reward': reward,
+#                 'Steps': steps,
+#                 'TotalSteps': total_steps,
+#                 'C': c,
+#                 'Type': setting,
+#                 'Env': env
+#             })
+#             df = pd.concat([df, temp_df])
+#
+# # Reset index
+# df = df.reset_index(drop=True)
 
-# Populate the DataFrame
-for env in environments:
-    for setting in settings:
-        for c in channel_capacity:
-            # Generate a linearly increasing reward with some noise
-            reward = np.linspace(0, 1, num_episodes) + np.random.normal(0, 0.1, num_episodes)
-            reward = np.clip(reward, 0, 1)  # Ensure rewards are between 0 and 1
+# # Load tabular_results_pong_0.0001_1_0.001_0.9999951365_0.8_4000000
+# df = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.8_4000000.csv", index_col=0)
+#
+# print(df.head())
+#
+# # Calculate the discounted rewards and add them to the DataFrame
+# df['DiscountedReward'] = df['Reward']
+#
+#
+# # Plot the reward curves
+# plot_reward_curve(df, "pong")
 
-            # Generate other columns
-            episodes = np.arange(0, num_episodes)
-            steps = np.random.randint(1, 100, num_episodes)
-            total_steps = np.cumsum(steps)
-
-            # Create a temp DataFrame and append to the main DataFrame
-            temp_df = pd.DataFrame({
-                'Episodes': episodes,
-                'Reward': reward,
-                'Steps': steps,
-                'TotalSteps': total_steps,
-                'C': c,
-                'Type': setting,
-                'Env': env
-            })
-            df = pd.concat([df, temp_df])
-
-# Reset index
-df = df.reset_index(drop=True)
-
-# print(df)
-
-# Calculate the discounted rewards and add them to the DataFrame
-df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
-
-
-# Plot the reward curves
-# plot_reward_curves(df)
-
+# df['DiscountedReward'] = df['DiscountedReward']/0.71
+#
 # plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
 
 def visualize_belief(belief_table, layout):
