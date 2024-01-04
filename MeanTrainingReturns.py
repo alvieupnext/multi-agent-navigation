@@ -63,7 +63,7 @@ possible_C_values = {
 # Learning steps is 12 million
 learning_steps = 4000000
 # The possible layouts for the environment
-layout = "pong"
+layout = "four_room"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
 # The possible types ("Q-learning" will be added soon)
 types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
