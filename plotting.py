@@ -76,6 +76,57 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
     plt.tight_layout()
     plt.show()
 
+def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
+    """
+    Plots a bar graph with the mean drops (sorted in descending order) and their confidence intervals.
+    Adjusted to address deprecation warnings and the ValueError for colorbar.
+
+    Parameters:
+    mean_drops (np.array): An array containing the mean drop in performance for each sender.
+    confidence_intervals (np.array): An array of tuples containing the lower and upper bounds of the confidence intervals.
+    """
+    # Ensure that the arrays are numpy arrays
+    mean_drops = np.array(mean_drops)
+    confidence_intervals = np.array(confidence_intervals)
+
+    # Sort the drops and confidence intervals together in descending order
+    sorted_indices = np.argsort(mean_drops)[::-1]
+    sorted_mean_drops = mean_drops[sorted_indices]
+    sorted_confidence_intervals = confidence_intervals[sorted_indices]
+
+    # Calculate the errors from the confidence intervals
+    errors = np.abs(np.column_stack((sorted_mean_drops - sorted_confidence_intervals[:, 0],
+                                     sorted_confidence_intervals[:, 1] - sorted_mean_drops))).T
+
+    # Normalize the mean drops to get a range for color mapping
+    normalized_drops = (sorted_mean_drops - np.min(sorted_mean_drops)) / np.ptp(sorted_mean_drops)
+
+    # Create the colormap using the updated syntax
+    cmap = plt.cm.get_cmap('Blues')
+
+    # Create the bar plot
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.bar(np.arange(len(sorted_mean_drops)), sorted_mean_drops, color=cmap(normalized_drops + 0.3), yerr=errors,
+                  capsize=5)
+
+    # Create a ScalarMappable and initialize a data structure
+    sm = plt.cm.ScalarMappable(cmap=cmap,
+                               norm=plt.Normalize(vmin=np.min(sorted_mean_drops), vmax=np.max(sorted_mean_drops)))
+    sm.set_array([])  # You need to set_array for the ScalarMappable.
+
+    # Add the color bar
+    cbar = fig.colorbar(sm, ax=ax)
+    cbar.set_label('Drop in performance (%)', rotation=270, labelpad=15)
+
+    # Add labels and title
+    ax.set_xlabel('Sorted sender ID')
+    ax.set_ylabel('Drop in performance (%)')
+    ax.set_xticks(np.arange(len(sorted_mean_drops)))
+    ax.set_xticklabels(sorted_indices)  # Set x-ticks to be the sorted sender IDs
+
+    # Show the plot
+    plt.show()
+
 
 # print("before reading")
 # Open tabular_results_pong_0.0001_0.05_0.05_0.8_12000000 from results folder
@@ -97,7 +148,7 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
 #
 
 # Generate mock data for testing the function
-np.random.seed(0)  # For reproducibility
+# np.random.seed(0)  # For reproducibility
 
 # Define parameters for mock data
 num_episodes = 10_000  # Number of episodes
