@@ -1,8 +1,10 @@
+import numpy as np
+
 from environments.five_grid import FiveGrid, layouts as env_layouts
 from agents.Sender import Sender
 from agents.Receiver import Receiver
 from agents.QLearningAgent import QLearningAgent
-from plotting import visualize_belief, visualize_receiver_policy, visualize_thompson
+from plotting import visualize_belief, visualize_receiver_policy, visualize_thompson, plot_sorted_drop_with_confidence
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
@@ -190,11 +192,127 @@ def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_dec
     #     visualize_thompson(sender.alphas, sender.betas, num_messages, chosen_layout)
     # for message in range(num_messages ** M):
     #     visualize_receiver_policy(receiver.q_table, env.world_size, num_messages ** M, message, chosen_layout)
-    return episodes_rewards, episode_steps, episode_total_steps
+    return episodes_rewards, episode_steps, episode_total_steps, senders, receiver
 
     # Any additional logic or cleanup
 
+def run_scrambled_experiments(senders, receiver, env, evaluation_episodes):
+    all_results = []
+    gamma = 0.8
+    num_messages = senders[0].num_possible_messages
+    options = {"termination_probability": 1 - gamma}
+    # Make a sequence that goes from evaluation_steps to total_steps in steps of evaluation_steps
+    # Set the epsilon of the receiver to 0
+    receiver.epsilon = 0
+    for i in range(6):
+        scramble_index = None if i == 0 else i - 1
+        messages = []
+        episodes_rewards = []
+        observations, infos = env.reset(options=options)
+        goal_state = env.returnGoal()
+
+        for sender in senders:
+            messages.append(sender.choose_action(goal_state))
+
+        # If the scramble index is not None, scramble the messages at the given index
+        if scramble_index is not None:
+            messages[scramble_index] = np.random.choice(num_messages)
+
+        # Flatten the messages into a single message
+        message = flatten_messages(messages, num_messages)
+        episode_count = 0
+        #Regular results, no scrambling
+        while True:
+            observation = observations["receiver"]
+            action = receiver.choose_action(observation["observation"], message, observation["action_mask"])
+            next_observations, rewards, terminations, truncations, infos = env.step({"receiver": action})
+            reward = rewards["receiver"]
+
+            if terminations["receiver"] or truncations["receiver"]:
+                episodes_rewards.append(reward * gamma ** env.timestep)
+                episode_count += 1
+                if episode_count == evaluation_episodes:
+                    break
+                observations, infos = env.reset(options=options)
+                goal_state = env.returnGoal()
+                messages = []
+                for sender in senders:
+                    messages.append(sender.choose_action(goal_state))
+                # If the scramble index is not None, scramble the messages at the given index
+                if scramble_index is not None:
+                    messages[scramble_index] = np.random.choice(num_messages)
+                message = flatten_messages(messages, num_messages)
+            else:
+                observations = next_observations
+        all_results.append(episodes_rewards)
+    return all_results
+
+# Function to perform bootstrapping
+def bootstrap_confidence_interval(regular_results, scrambled_results, n_samples):
+    bootstrap_samples = []
+    for _ in range(n_samples):
+        # Sample with replacement
+        sampled_regular = np.random.choice(regular_results, size=len(regular_results), replace=True)
+        sampled_scrambled = np.random.choice(scrambled_results, size=len(scrambled_results), replace=True)
+
+        # Calculate drop
+        drop = calculate_drop(sampled_regular, sampled_scrambled)
+        bootstrap_samples.append(drop)
+
+    # Calculate confidence intervals
+    lower_bound = np.percentile(bootstrap_samples, 2.5)
+    upper_bound = np.percentile(bootstrap_samples, 97.5)
+    return lower_bound, upper_bound
+
+# Function to calculate drop
+def calculate_drop(regular_results, scrambled_results):
+    regular_mean = np.mean(regular_results)
+    scrambled_mean = np.mean(scrambled_results)
+    return (regular_mean - scrambled_mean) / regular_mean * 100
+
+
 # Generate a plot for the rewards and steps
+# 4 million steps
+learning_steps = 4_000_000
+gamma = 0.8
+# We evaluate over 1000 episodes
+evaluation_episodes = 1000
+# Figure 6 in the paper
+regular_results, scrambled0_results, scrambled1_results,\
+        scrambled2_results, scrambled3_results, scrambled4_results = [], [], [], [], [], []
+# Define senders and receiver here
+for lay_out in env_layouts.values():
+    env = FiveGrid(illegal_positions=lay_out)
+    # Train the senders and receiver here
+    _, _, _, senders, receiver = run_experiment(5, 2, 0.001, 1, 0.01, 0.9999951365, gamma, env, learning_steps)
+    regular_result, scrambled0_result, scrambled1_result,\
+        scrambled2_result, scrambled3_result, scrambled4_result = run_scrambled_experiments(senders, receiver, env,
+                                                                                               evaluation_episodes)
+    regular_results.extend(regular_result)
+    scrambled0_results.extend(scrambled0_result)
+    scrambled1_results.extend(scrambled1_result)
+    scrambled2_results.extend(scrambled2_result)
+    scrambled3_results.extend(scrambled3_result)
+    scrambled4_results.extend(scrambled4_result)
+
+# Number of bootstrap samples
+n_bootstrap_samples = 1000
+
+mean_drops = []
+lower_bounds = []
+upper_bounds = []
+for scrambled_results in [scrambled0_results, scrambled1_results, scrambled2_results, scrambled3_results,
+                          scrambled4_results]:
+    mean_drop = calculate_drop(regular_results, scrambled_results)
+    mean_drops.append(mean_drop)
+    lower_bound, upper_bound = bootstrap_confidence_interval(regular_results, scrambled_results, n_bootstrap_samples)
+    lower_bounds.append(lower_bound)
+    upper_bounds.append(upper_bound)
+
+import matplotlib as mpl
+
+plot_sorted_drop_with_confidence(mean_drops, list(zip(lower_bounds, upper_bounds)))
+
 
 # import numpy as np
 # # Plot the results
