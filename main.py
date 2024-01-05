@@ -128,7 +128,6 @@ def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_dec
     options = {"termination_probability": 1 - gamma}
     senders = [Sender(num_messages, env.world_size, alpha) for _ in range(M)]
     receiver = Receiver(env.world_size, num_messages ** M, gamma, alpha, epsilon_max, epsilon_min, epsilon_decay)
-    action = None
     messages = []
     observations, infos = env.reset(options=options)
     goal_state = env.returnGoal()
@@ -271,47 +270,47 @@ def calculate_drop(regular_results, scrambled_results):
     return (regular_mean - scrambled_mean) / regular_mean * 100
 
 
-# Generate a plot for the rewards and steps
-# 4 million steps
-learning_steps = 4_000_000
-gamma = 0.8
-# We evaluate over 1000 episodes
-evaluation_episodes = 1000
-# Figure 6 in the paper
-regular_results, scrambled0_results, scrambled1_results,\
-        scrambled2_results, scrambled3_results, scrambled4_results = [], [], [], [], [], []
-# Define senders and receiver here
-for lay_out in env_layouts.values():
-    env = FiveGrid(illegal_positions=lay_out)
-    # Train the senders and receiver here
-    _, _, _, senders, receiver = run_experiment(5, 2, 0.001, 1, 0.01, 0.9999951365, gamma, env, learning_steps)
-    regular_result, scrambled0_result, scrambled1_result,\
-        scrambled2_result, scrambled3_result, scrambled4_result = run_scrambled_experiments(senders, receiver, env,
-                                                                                               evaluation_episodes)
-    regular_results.extend(regular_result)
-    scrambled0_results.extend(scrambled0_result)
-    scrambled1_results.extend(scrambled1_result)
-    scrambled2_results.extend(scrambled2_result)
-    scrambled3_results.extend(scrambled3_result)
-    scrambled4_results.extend(scrambled4_result)
-
-# Number of bootstrap samples
-n_bootstrap_samples = 1000
-
-mean_drops = []
-lower_bounds = []
-upper_bounds = []
-for scrambled_results in [scrambled0_results, scrambled1_results, scrambled2_results, scrambled3_results,
-                          scrambled4_results]:
-    mean_drop = calculate_drop(regular_results, scrambled_results)
-    mean_drops.append(mean_drop)
-    lower_bound, upper_bound = bootstrap_confidence_interval(regular_results, scrambled_results, n_bootstrap_samples)
-    lower_bounds.append(lower_bound)
-    upper_bounds.append(upper_bound)
-
-import matplotlib as mpl
-
-plot_sorted_drop_with_confidence(mean_drops, list(zip(lower_bounds, upper_bounds)))
+# # Generate a plot for the rewards and steps
+# # 4 million steps
+# learning_steps = 4_000_000
+# gamma = 0.8
+# # We evaluate over 1000 episodes
+# evaluation_episodes = 1000
+# # Figure 6 in the paper
+# regular_results, scrambled0_results, scrambled1_results,\
+#         scrambled2_results, scrambled3_results, scrambled4_results = [], [], [], [], [], []
+# # Define senders and receiver here
+# for lay_out in env_layouts.values():
+#     env = FiveGrid(illegal_positions=lay_out)
+#     # Train the senders and receiver here
+#     _, _, _, senders, receiver = run_experiment(5, 2, 0.001, 1, 0.01, 0.9999951365, gamma, env, learning_steps)
+#     regular_result, scrambled0_result, scrambled1_result,\
+#         scrambled2_result, scrambled3_result, scrambled4_result = run_scrambled_experiments(senders, receiver, env,
+#                                                                                                evaluation_episodes)
+#     regular_results.extend(regular_result)
+#     scrambled0_results.extend(scrambled0_result)
+#     scrambled1_results.extend(scrambled1_result)
+#     scrambled2_results.extend(scrambled2_result)
+#     scrambled3_results.extend(scrambled3_result)
+#     scrambled4_results.extend(scrambled4_result)
+#
+# # Number of bootstrap samples
+# n_bootstrap_samples = 1000
+#
+# mean_drops = []
+# lower_bounds = []
+# upper_bounds = []
+# for scrambled_results in [scrambled0_results, scrambled1_results, scrambled2_results, scrambled3_results,
+#                           scrambled4_results]:
+#     mean_drop = calculate_drop(regular_results, scrambled_results)
+#     mean_drops.append(mean_drop)
+#     lower_bound, upper_bound = bootstrap_confidence_interval(regular_results, scrambled_results, n_bootstrap_samples)
+#     lower_bounds.append(lower_bound)
+#     upper_bounds.append(upper_bound)
+#
+# import matplotlib as mpl
+#
+# plot_sorted_drop_with_confidence(mean_drops, list(zip(lower_bounds, upper_bounds)))
 
 
 # import numpy as np
@@ -330,7 +329,6 @@ plot_sorted_drop_with_confidence(mean_drops, list(zip(lower_bounds, upper_bounds
 # plt.show()
 
 
-# rewards, steps, total_steps = run_experiment(1, 4, 0.001, 0.01, 0.01, gamma, env, learning_steps)
 # #rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
 # # Generate a plot for the rewards and steps
 # plt.plot(total_steps, rewards)
