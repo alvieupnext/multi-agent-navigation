@@ -42,7 +42,7 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
   return df
 
 # Eta is 1e-4
-eta = 1e-4
+eta = 1e-7
 # Gamma is 0.8
 gamma = 0.8
 # Epsilon values for the receiver
