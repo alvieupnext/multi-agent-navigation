@@ -41,10 +41,10 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
   df["Env"] = layout
   return df
 
-# Eta is 1e-4
+# Eta is 1e-7
 eta = 1e-7
-# Gamma is 0.8
-gamma = 0.8
+# Gamma is 0.9
+gamma = 0.9
 # Epsilon values for the receiver
 epsilon_max = 1
 epsilon_min = 0.001
