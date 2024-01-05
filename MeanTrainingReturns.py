@@ -1,6 +1,8 @@
 import ray
 import pandas as pd
 from main import run_experiment, FiveGrid, env_layouts, run_q_agent
+import sys  # Import the sys module
+
 
 # The columns for the dataframe Episode, Reward, Steps, TotalSteps, C, type, env
 #  type = 5S-1R, 4S-1R, 3S-1R, 2S-1R, 1S-1R, Q-learning, Random  S = Sender
@@ -62,7 +64,7 @@ possible_C_values = {
 # Learning steps is 4 million
 learning_steps = 4_000_000
 # The possible layouts for the environment
-layout = "four_room"
+# layout = "four_room"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
 # The possible types ("Q-learning" will be added soon)
 types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
@@ -70,6 +72,12 @@ types = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
 
 
 if __name__ == "__main__":
+  # Retrieve the environment from the command line argument
+  if len(sys.argv) > 1:
+    layout = sys.argv[1]
+  else:
+    layout = "two_room"  # Default environment if none is provided
+  print(f"Now working on {layout}")
   ray.init(address='auto')
   # ray.init()
   remotes = []
