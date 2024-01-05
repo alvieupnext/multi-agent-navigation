@@ -19,7 +19,7 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
     rewards, steps, total_steps = run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, eta,env, learning_steps)
   elif type == "Random":
     # Use a single sender with epsilon = 1
-    rewards, steps, total_steps, _ = run_experiment(1, C, eta, epsilon_max, epsilon_min,
+    rewards, steps, total_steps, _, _ = run_experiment(1, C, eta, epsilon_max, epsilon_min,
                                                  epsilon_decay, gamma, env, learning_steps, random)
   else: # Type with senders and receivers
     # Types are of the kind 5S-1R, 4S-1R, 3S-1R, 2S-1R, 1S-1R
@@ -27,7 +27,7 @@ def run_training(type, C, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, l
     M = int(type[0])
     num_messages = int(C ** (1 / M))
     # Run the experiment
-    rewards, steps, total_steps, _ = run_experiment(M, num_messages, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps)
+    rewards, steps, total_steps, _, _ = run_experiment(M, num_messages, eta, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps)
   # Generate a type from the M value
   # Create a dataframe from the results
   df = pd.DataFrame(list(zip(rewards, steps, total_steps)), columns=["Reward", "Steps", "TotalSteps"])
@@ -62,7 +62,7 @@ possible_C_values = {
     5: [32]
 }
 # Learning steps is 4 million
-learning_steps = 4_000
+learning_steps = 4_000_000
 # The possible layouts for the environment
 # layout = "four_room"
 sender_receiver = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R"]
