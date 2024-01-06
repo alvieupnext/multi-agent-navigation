@@ -1,0 +1,75 @@
+#!/bin/bash
+
+
+
+#SBATCH --time=72:00:00
+
+#SBATCH --ntasks-per-node=4
+
+#SBATCH --cpus-per-task=2
+
+#SBATCH --nodes=4
+
+#SBATCH --mem-per-cpu=4G
+
+module purge
+
+module load Ray-project/2.2.0-foss-2022a
+module load matplotlib/3.5.2-foss-2022a
+module load tqdm/4.64.0-GCCcore-11.3.0
+
+nodes=$(scontrol show hostnames "$SLURM_JOB_NODELIST")
+
+nodes_array=($nodes)
+
+head_node=${nodes_array[0]}
+
+head_node_ip=$(hostname --ip-address)
+
+
+
+port=6789
+
+ip_head=$head_node_ip:$port
+
+echo "IP Head: $ip_head"
+
+
+
+echo "Starting HEAD at $head_node"
+
+ray start --head --port=$port --verbose --num-cpus="${SLURM_CPUS_PER_TASK}" --num-gpus=0 --block &
+
+
+
+# wait a bit to make sure the HEAD Ray node is fully up and running
+
+sleep 30
+
+
+
+# number of nodes other than the head node
+
+worker_num=$((SLURM_JOB_NUM_NODES - 1))
+
+
+
+for ((i = 1; i <= worker_num; i++)); do
+
+    node_i=${nodes_array[$i]}
+
+    echo "Starting WORKER $i at $node_i"
+
+    srun --nodes=1 --ntasks=1 -w "$node_i"  ray start --address "$ip_head" --verbose --num-cpus="${SLURM_CPUS_PER_TASK}" --num-gpus=0 --block &
+
+    sleep 30
+
+done
+
+
+cd ./multi-agent-navigation
+git pull
+git checkout tabular
+python MeanTrainingReturns.py empty_room
+
+
