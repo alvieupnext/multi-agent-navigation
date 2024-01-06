@@ -3,15 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.colors as mcolors
 from scipy.stats import beta
-import matplotlib
-
-matplotlib.use("pgf")
-matplotlib.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    'font.family': 'serif',
-    'text.usetex': True,
-    'pgf.rcfonts': False,
-})
 
 
 # def plot_reward_curves(pdDataframe):
@@ -105,7 +96,7 @@ def plot_reward_curves(pdDataframe, environments=None):
     fig.legend(lines, settings + ["Max"], loc='upper center', ncol=len(settings)+1)
     plt.tight_layout(rect=[0, 0, 1, 0.95])
 
-    plt.savefig("Fig3A.pgf")
+    plt.savefig("Fig3A.pdf", format = "pdf")
 
     plt.show()
 
@@ -137,7 +128,7 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
             ax.set_ylabel("Reward*")
 
     plt.tight_layout()
-    plt.savefig("Fig3B.pgf")
+    plt.savefig("Fig3B.pdf", format = "pdf")
     plt.show()
 
 def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
@@ -187,7 +178,7 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
     ax.set_ylabel('Drop in performance (%)')
     ax.set_xticks(np.arange(len(sorted_mean_drops)))
     ax.set_xticklabels(sorted_indices)  # Set x-ticks to be the sorted sender IDs
-    plt.savefig("Fig6.pgf")
+    plt.savefig("Fig6.pdf", format = "pdf")
 
     # Show the plot
     plt.show()
@@ -219,7 +210,7 @@ print(df.head())
 df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
 environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
 # # Plot the reward curves
-plot_reward_curves(df)
+# plot_reward_curves(df)
 # Per environment, assign the maximum possible reward based on the environment
 df['MaxReward'] = df['Env'].map(max_rewards_9)
 # Divide the discounted reward by the maximum possible reward to get the percentage of the maximum reward
