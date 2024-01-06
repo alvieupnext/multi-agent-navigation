@@ -192,30 +192,30 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
 # Plot the reward curves
 # plot_reward_curve(df, "pong")
 
-gamma = 0.9
-# Load the data from the results folder
-pong = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
-four_room = pd.read_csv("results/tabular_results_four_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
-two_room = pd.read_csv("results/tabular_results_two_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
-flower = pd.read_csv("results/tabular_results_flower_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
-empty_room = pd.read_csv("results/tabular_results_empty_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
-# These dataframes have the same columns, so we can concatenate them
-df = pd.concat([pong,
-                four_room,
-                two_room,
-                flower, empty_room
-                ]
-               )
-print(df.head())
-df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
-environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
-# # Plot the reward curves
-# plot_reward_curves(df)
-# Per environment, assign the maximum possible reward based on the environment
-df['MaxReward'] = df['Env'].map(max_rewards_9)
-# Divide the discounted reward by the maximum possible reward to get the percentage of the maximum reward
-df['DiscountedReward'] = df['DiscountedReward'] / df['MaxReward']
-plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
+# gamma = 0.9
+# # Load the data from the results folder
+# pong = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# four_room = pd.read_csv("results/tabular_results_four_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# two_room = pd.read_csv("results/tabular_results_two_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# flower = pd.read_csv("results/tabular_results_flower_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# empty_room = pd.read_csv("results/tabular_results_empty_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# # These dataframes have the same columns, so we can concatenate them
+# df = pd.concat([pong,
+#                 four_room,
+#                 two_room,
+#                 flower, empty_room
+#                 ]
+#                )
+# print(df.head())
+# df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
+# environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
+# # # Plot the reward curves
+# # plot_reward_curves(df)
+# # Per environment, assign the maximum possible reward based on the environment
+# df['MaxReward'] = df['Env'].map(max_rewards_9)
+# # Divide the discounted reward by the maximum possible reward to get the percentage of the maximum reward
+# df['DiscountedReward'] = df['DiscountedReward'] / df['MaxReward']
+# plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
 
 
 
