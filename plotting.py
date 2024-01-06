@@ -1,57 +1,83 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import matplotlib.colors as mcolors
 from scipy.stats import beta
 
 
-# def plot_reward_curves(pdDataframe):
-#     """
-#     For each of the environments, plot the reward curves for the different settings.
-#     """
-#     # environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
-#     for env in environments:
-#         plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
-#
-#
-# environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
-#
-# gamma = 0.8
-#
-#
-# def plot_reward_curve(pdDataframe, environment):
-#     settings = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning", "Max"]
-#     fig, ax = plt.subplots()
-#
-#     for setting in settings:
-#         data = pdDataframe[pdDataframe["Type"] == setting]
-#
-#         # Group by TotalSteps and get for each group the mean and standard deviation of the DiscountedReward
-#         grouped_data = data.groupby("TotalSteps")["DiscountedReward"].agg(["mean"]).reset_index()
-#
-#         # print(grouped_data["mean"])
-#         # print(grouped_data["std"])
-#
-#         # Calculate the rolling mean and standard deviation
-#         rolling_mean = grouped_data["mean"].rolling(window=50000).mean()
-#         # rolling_std = grouped_data["std"].rolling(window=500).mean()
-#         # Plot mean and error zone
-#         ax.plot(grouped_data['TotalSteps'], rolling_mean, label=setting)
-#         # ax.fill_between(grouped_data['TotalSteps'], rolling_mean - rolling_std, rolling_mean + rolling_std, alpha=1)
-#
-#     ax.set_title(f"Reward curves with error zones for {environment}")
-#     ax.set_xlabel("Steps")
-#     ax.set_ylabel("Reward")
-#     ax.legend()
-#     plt.show()
 
-# Theoretical Max Reward (calculated by the average max discounted reward that can be reached by a perfect agent
-# in the environment)
-# max_rewards = {"pong": 0.56045714285, "four_room": 0.54968888888,
-#                "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
+def visualize_belief(belief_table, layout):
+    print(belief_table)
+    indices = np.argmax(belief_table, axis=1)
+    # get max index
+    wall = np.max(indices) + 1
+    indices = indices.reshape((5, 5))
+    # display the value in each cell
+    for i in range(5):
+        for j in range(5):
+            if (j, i) in layout:
+                indices[i, j] = wall
+            else:
+                plt.text(j, i, indices[i, j], ha='center', va='center', color='black')
+    plt.imshow(indices)
+    plt.colorbar()
+    plt.show()
 
-# max_rewards = {"pong": 0.56045714285, "four_room": 0.54968888888,
-#                "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
+
+def visualize_thompson(alphas, betas, num_messages, layout):
+    print(f"Alphas: {alphas}")
+    print(f"Betas: {betas}")
+    messages = np.zeros(25)
+    for i in range(25):
+        samples = [beta.rvs(alphas[i][a], betas[i][a]) for a in range(num_messages)]
+        messages[i] = np.argmax(samples)
+    messages = messages.reshape((5, 5))
+    wall = np.max(messages) + 1
+    # display the value in each cell
+    for i in range(5):
+        for j in range(5):
+            if (j, i) in layout:
+                messages[i, j] = wall
+            else:
+                plt.text(j, i, messages[i, j], ha='center', va='center', color='black')
+    plt.imshow(messages)
+    plt.colorbar()
+    plt.show()
+
+
+def visualize_receiver_policy(q_table, world_size, channel_capacity, message, layout):
+    dimensions = int(world_size ** (1 / 2))
+    policy_table = np.argmax(q_table[:, message, :], axis=1).reshape((dimensions, dimensions))
+    directions = {
+        0: (0, -0.3),  # Up
+        1: (0, 0.3),  # Down
+        2: (0.3, 0),  # Right
+        3: (-0.3, 0)  # Left
+    }
+    wall = 4
+    print(q_table)
+    for i in range(dimensions):
+        for j in range(dimensions):
+            if (j, i) in layout:
+                policy_table[i, j] = wall
+            else:
+                dx, dy = directions[policy_table[i, j]]
+                plt.arrow(j - dx, i - dy, dx * 2, dy * 2, head_width=0.1, head_length=0.1, fc='k', ec='k')
+    plt.imshow(policy_table)
+    plt.title("C = %s" % channel_capacity)
+    plt.show()
+
+
+# Example usage (assuming you have a Q-table named q_table):
+# visualize_q_table(q_table)
+
+# Example for visualising the receiver's policy given a q-table with random values
+# q_table = np.random.randint(0, 20, (25, 3, 4))
+# print(str(q_table))
+# visualize_receiver_policy(q_table, 25, 3, 2, [(0, 1), (0, 2), (0, 3), (2, 0), (2, 1), (2, 3), (2, 4), (4, 1), (4, 2), (4, 3)])
+
+# Example for visualising the belief table given a belief table of 25 states and 3 messages
+# belief_table = np.random.randint(0, 4, (25, 3))
+# visualize_belief(belief_table, [(0, 1), (0, 2), (0, 3), (2, 0), (2, 1), (2, 3), (2, 4), (4, 1), (4, 2), (4, 3)])
 
 max_rewards_8 = {"pong": 0.56045714285, "four_room": 0.54968888888,
                "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
@@ -184,14 +210,8 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
     plt.show()
 
 
-# print("before reading")
-# Open tabular_results_pong_0.0001_0.05_0.05_0.8_12000000 from results folder
-# df = pd.read_csv("results/tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv")
-# print("after reading")
-
-# Plot the reward curves
-# plot_reward_curve(df, "pong")
-
+# Plot Figure 3A and 3B from the paper
+# A memory overflow error can occur when trying to load both figures at the same time
 # gamma = 0.9
 # # Load the data from the results folder
 # pong = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
@@ -226,10 +246,10 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
 # Generate mock data for testing the function
 # np.random.seed(0)  # For reproducibility
 
-# Define parameters for mock data
-num_episodes = 10_000  # Number of episodes
-# settings = ['5S-1R']
-channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
+# # Define parameters for mock data
+# num_episodes = 10_000  # Number of episodes
+# # settings = ['5S-1R']
+# channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
 
 # # Create an empty DataFrame
 # df = pd.DataFrame()
@@ -276,77 +296,3 @@ channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
 #
 # df['DiscountedReward'] = df['DiscountedReward']/0.71
 #
-
-def visualize_belief(belief_table, layout):
-    print(belief_table)
-    indices = np.argmax(belief_table, axis=1)
-    # get max index
-    wall = np.max(indices) + 1
-    indices = indices.reshape((5, 5))
-    # display the value in each cell
-    for i in range(5):
-        for j in range(5):
-            if (j, i) in layout:
-                indices[i, j] = wall
-            else:
-                plt.text(j, i, indices[i, j], ha='center', va='center', color='black')
-    plt.imshow(indices)
-    plt.colorbar()
-    plt.show()
-
-
-def visualize_thompson(alphas, betas, num_messages, layout):
-    print(f"Alphas: {alphas}")
-    print(f"Betas: {betas}")
-    messages = np.zeros(25)
-    for i in range(25):
-        samples = [beta.rvs(alphas[i][a], betas[i][a]) for a in range(num_messages)]
-        messages[i] = np.argmax(samples)
-    messages = messages.reshape((5, 5))
-    wall = np.max(messages) + 1
-    # display the value in each cell
-    for i in range(5):
-        for j in range(5):
-            if (j, i) in layout:
-                messages[i, j] = wall
-            else:
-                plt.text(j, i, messages[i, j], ha='center', va='center', color='black')
-    plt.imshow(messages)
-    plt.colorbar()
-    plt.show()
-
-
-def visualize_receiver_policy(q_table, world_size, channel_capacity, message, layout):
-    dimensions = int(world_size ** (1 / 2))
-    policy_table = np.argmax(q_table[:, message, :], axis=1).reshape((dimensions, dimensions))
-    directions = {
-        0: (0, -0.3),  # Up
-        1: (0, 0.3),  # Down
-        2: (0.3, 0),  # Right
-        3: (-0.3, 0)  # Left
-    }
-    wall = 4
-    print(q_table)
-    for i in range(dimensions):
-        for j in range(dimensions):
-            if (j, i) in layout:
-                policy_table[i, j] = wall
-            else:
-                dx, dy = directions[policy_table[i, j]]
-                plt.arrow(j - dx, i - dy, dx * 2, dy * 2, head_width=0.1, head_length=0.1, fc='k', ec='k')
-    plt.imshow(policy_table)
-    plt.title("C = %s" % channel_capacity)
-    plt.show()
-
-
-# Example usage (assuming you have a Q-table named q_table):
-# visualize_q_table(q_table)
-
-# Example for visualising the receiver's policy given a q-table with random values
-# q_table = np.random.randint(0, 20, (25, 3, 4))
-# print(str(q_table))
-# visualize_receiver_policy(q_table, 25, 3, 2, [(0, 1), (0, 2), (0, 3), (2, 0), (2, 1), (2, 3), (2, 4), (4, 1), (4, 2), (4, 3)])
-
-# Example for visualising the belief table given a belief table of 25 states and 3 messages
-# belief_table = np.random.randint(0, 4, (25, 3))
-# visualize_belief(belief_table, [(0, 1), (0, 2), (0, 3), (2, 0), (2, 1), (2, 3), (2, 4), (4, 1), (4, 2), (4, 3)])

@@ -5,52 +5,15 @@ from agents.Sender import Sender
 from agents.Receiver import Receiver
 from agents.QLearningAgent import QLearningAgent
 from plotting import visualize_belief, visualize_receiver_policy, visualize_thompson, plot_sorted_drop_with_confidence
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-# chosen_layout = env_layouts["empty_room"]
-# env = FiveGrid(illegal_positions=chosen_layout)
-#
-# # The hyperparameters
-# # Amount of sender agents
-# M_values = [1, 2, 3, 4, 5]
-# # Channel capacity (amount of messages each sender can send)
-# C_values = [3, 4, 5, 8, 9, 16, 25, 27, 32, 36, 64]
-# # The learning rate for RMSprop, which is an optimization algorithm used to adjust weights in the learning process.
-# # Listed but not used in the paper: 5e-5
-# eta_values = [1e-4, 5e-4, 1e-3]
-# # The epsilon values for the sender
-# # Listed but not used in the paper: 0.1, 0.15
-# epsilon_s_values = [0.01, 0.05]
-# # The epsilon values for the receiver
-# # Listed but not used in the paper: 0.15
-# epsilon_r_values = [0.01, 0.05, 0.1]
-# # The receiver's Q-learning discount factor
-# gamma_values = [0.7, 0.8, 0.9]
-# # The possible layouts for the environment
-# layouts = [env_layouts["pong"], env_layouts["four_room"], env_layouts["two_room"], env_layouts["flower"],
-#            env_layouts["empty_room"]]
-#
-# # 12 million steps
-# learning_steps = 12000000
-
-
+# Tqdm progress bar code is commented because it does not work with Ray jobs and makes the log files too big
+# Can be uncommented when running locally
 # # Flatten an array of messages into a single message (one hot encoding)
 def flatten_messages(messages, num_messages):
     return sum([message * num_messages ** i for i, message in enumerate(messages)])
 
-# def flatten_messages(messages, base):
-#     print(messages)
-#     unique_integer = 0
-#
-#     for message in messages:
-#         unique_integer = unique_integer * base + message
-#
-#     print(unique_integer)
-#
-#     return unique_integer
-
-
+# Runs the Q-learning agent
 def run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, learning_rate, env, learning_steps):
     options = {"termination_probability": 1 - gamma}
     receiver = QLearningAgent(env.world_size, gamma, learning_rate, epsilon_max, epsilon_min, epsilon_decay)
@@ -104,23 +67,7 @@ def run_q_agent(gamma, epsilon_max, epsilon_min, epsilon_decay, learning_rate, e
 
     return episodes_rewards, episode_steps, episode_total_steps
 
-    # Any additional logic or cleanup
-
-
-# def find_sender_message_combinations(C):
-#     """
-#     Find all combinations of senders and messages where the number of channels (C) is equal to N^M.
-#     """
-#     combinations = []
-#     # We check up to C because we can have a maximum of C senders each sending 1 message.
-#     for N in range(1, C + 1):
-#         # M = C^(1/N) -> Check if M is an integer
-#         M = C ** (1 / N)
-#         if M.is_integer():
-#             combinations.append((N, int(M)))
-#     return combinations
-
-
+# Runs experiment on the sender and receiver agents
 def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_decay, gamma, env, learning_steps, random=False):
     # C = num_messages ** M
     print(
@@ -195,6 +142,7 @@ def run_experiment(M, num_messages, alpha, epsilon_max, epsilon_min, epsilon_dec
 
     # Any additional logic or cleanup
 
+# Experiment code for figure 6
 def run_scrambled_experiments(senders, receiver, env, evaluation_episodes):
     all_results = []
     gamma = 0.8
@@ -270,6 +218,7 @@ def calculate_drop(regular_results, scrambled_results):
     return (regular_mean - scrambled_mean) / regular_mean * 100
 
 
+# Experiment to generate Figure 6 in the paper
 # # Generate a plot for the rewards and steps
 # # 4 million steps
 # learning_steps = 4_000_000
@@ -308,73 +257,5 @@ def calculate_drop(regular_results, scrambled_results):
 #     lower_bounds.append(lower_bound)
 #     upper_bounds.append(upper_bound)
 #
-# import matplotlib as mpl
 #
 # plot_sorted_drop_with_confidence(mean_drops, list(zip(lower_bounds, upper_bounds)))
-
-
-# import numpy as np
-# # Plot the results
-# env = FiveGrid(illegal_positions=chosen_layout)
-# gamma = 0.8
-# episodes_rewards, episode_steps, episode_total_steps = run_experiment(2, 2, 0.00001, 0.05, 0.05, gamma, env, learning_steps)
-# # import numpy as np
-# #Calculate rolling average with a window of 10000
-# rolling_average = np.convolve(episodes_rewards, np.ones((50000,))/50000, mode='valid')
-# plt.plot(rolling_average)
-#
-# plt.xlabel("Learning Steps")
-# plt.ylabel("Reward")
-# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
-# plt.show()
-
-
-# #rewards, steps, total_steps = run_q_agent(gamma, 0.01, 0.9, env, learning_steps)
-# # Generate a plot for the rewards and steps
-# plt.plot(total_steps, rewards)
-# plt.xlabel("Learning Steps")
-# plt.ylabel("Reward")
-# plt.title(f"Reward vs Learning Steps (Gamma: {gamma})")
-# plt.show()
-
-# for lay_out in layouts:
-#     env = FiveGrid(illegal_positions=lay_out)
-#     for gamma in gamma_values:
-#         options = {"termination_probability": 1 - gamma}
-#         # Amount of sender agents
-#         for M in M_values:
-#             # Channel capacity (amount of messages each sender can send)
-#             for C in C_values:
-#                 # The learning rate for RMSprop, which is an optimization algorithm used to adjust weights in the learning process.
-#                 for eta in eta_values:
-#                     for epsilon_s in epsilon_s_values:
-#                         for epsilon_r in epsilon_r_values:
-#                             run_experiment(M, C, eta, epsilon_s, epsilon_r, gamma, env, learning_steps)
-
-
-# #Generate a generic loop for the environment using an agent that does random actions
-# # Path: main.py
-# # Compare this snippet from agents/Receiver.py:
-# def choose_action(action_mask):
-#     # Choose a random action
-#     action = np.random.choice(np.where(action_mask == 1)[0])
-#     # Return the action
-#     return action
-#
-# # Termination probability of the environment
-# options = {"termination_probability": 0.1}
-#
-# observations, infos = env.reset(options=options)
-#
-# env.render()
-#
-# while env.agents:
-#     # From observations, get the action mask
-#     action_mask = observations["receiver"]["action_mask"]
-#     choice = choose_action(action_mask)
-#     # Get the observations, rewards, terminations, truncations and infos
-#     observations, rewards, terminations, truncations, infos = env.step({"receiver": choice})
-#     # Print receiver reward
-#     print("Receiver reward: " + str(rewards["receiver"]))
-#     # Render the environment
-#     env.render()
