@@ -1,4 +1,6 @@
-# Repository Name
+# Multi-Agent-Navigation
+
+Written by Lennert Saerens, Alexandre Szomonyak and Alvaro Vargas Guerrero.
 
 ## Overview
 This repository contains two distinct implementations for our project. The aim of this project is to [briefly describe the goal of your project].
