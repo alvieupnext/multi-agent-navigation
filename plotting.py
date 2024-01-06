@@ -3,48 +3,111 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.colors as mcolors
 from scipy.stats import beta
+import matplotlib
+
+matplotlib.use("pgf")
+matplotlib.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    'font.family': 'serif',
+    'text.usetex': True,
+    'pgf.rcfonts': False,
+})
 
 
-def plot_reward_curves(pdDataframe):
+# def plot_reward_curves(pdDataframe):
+#     """
+#     For each of the environments, plot the reward curves for the different settings.
+#     """
+#     # environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
+#     for env in environments:
+#         plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
+#
+#
+# environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
+#
+# gamma = 0.8
+#
+#
+# def plot_reward_curve(pdDataframe, environment):
+#     settings = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning", "Max"]
+#     fig, ax = plt.subplots()
+#
+#     for setting in settings:
+#         data = pdDataframe[pdDataframe["Type"] == setting]
+#
+#         # Group by TotalSteps and get for each group the mean and standard deviation of the DiscountedReward
+#         grouped_data = data.groupby("TotalSteps")["DiscountedReward"].agg(["mean"]).reset_index()
+#
+#         # print(grouped_data["mean"])
+#         # print(grouped_data["std"])
+#
+#         # Calculate the rolling mean and standard deviation
+#         rolling_mean = grouped_data["mean"].rolling(window=50000).mean()
+#         # rolling_std = grouped_data["std"].rolling(window=500).mean()
+#         # Plot mean and error zone
+#         ax.plot(grouped_data['TotalSteps'], rolling_mean, label=setting)
+#         # ax.fill_between(grouped_data['TotalSteps'], rolling_mean - rolling_std, rolling_mean + rolling_std, alpha=1)
+#
+#     ax.set_title(f"Reward curves with error zones for {environment}")
+#     ax.set_xlabel("Steps")
+#     ax.set_ylabel("Reward")
+#     ax.legend()
+#     plt.show()
+
+# Theoretical Max Reward (calculated by the average max discounted reward that can be reached by a perfect agent
+# in the environment)
+# max_rewards = {"pong": 0.56045714285, "four_room": 0.54968888888,
+#                "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
+
+# max_rewards = {"pong": 0.56045714285, "four_room": 0.54968888888,
+#                "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
+
+max_rewards_8 = {"pong": 0.56045714285, "four_room": 0.54968888888,
+               "two_room": 0.55872, "flower": 0.57472, "empty_room": 0.5856}
+
+max_rewards_9 = {"pong": 0.75574285714, "four_room": 0.7498, "two_room": 0.75582, "flower": 0.76482, "empty_room": 0.77235}
+
+
+def plot_reward_curves(pdDataframe, environments=None):
     """
-    For each of the environments, plot the reward curves for the different settings.
+    For each of the environments, plot the reward curves for the different settings in subplots.
     """
-    # environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
-    for env in environments:
-        plot_reward_curve(pdDataframe[pdDataframe["Env"] == env], env)
+    if environments is None:
+        environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
+    settings = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning"]
+    fig, axes = plt.subplots(1, len(environments), figsize=(20, 4))  # Adjust the figsize as needed
+    lines = []  # To keep track of line objects for the legend
+
+    # Plot each environment in a subplot
+    for idx, env in enumerate(environments):
+        ax = axes[idx]
+        data = pdDataframe[pdDataframe["Env"] == env]
+
+        for setting in settings:
+            subset = data[data["Type"] == setting]
+            grouped_data = subset.groupby("TotalSteps")["DiscountedReward"].agg(["mean"]).reset_index()
+            rolling_mean = grouped_data["mean"].rolling(window=50000).mean()
+            line, = ax.plot(grouped_data['TotalSteps'], rolling_mean, label=setting)
+            if env == environments[0]:  # Only add lines once for the legend
+                lines.append(line)
+
+        # Plot the theoretical max reward
+        line = ax.axhline(y=max_rewards_9[env], color='r', linestyle='--', label="Max")
+        if env == environments[0]:  # Only add lines once for the legend
+            lines.append(line)
 
 
-environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
+        ax.set_title(f"{env.capitalize()}")
+        ax.set_xlabel("Steps")
+        if idx == 0:  # Only the first subplot gets the ylabel to avoid clutter
+            ax.set_ylabel("Reward")
+    # Create a single legend for all subplots at the top
+    fig.legend(lines, settings + ["Max"], loc='upper center', ncol=len(settings)+1)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
 
-gamma = 0.8
+    plt.savefig("Fig3A.pgf")
 
-
-def plot_reward_curve(pdDataframe, environment):
-    settings = ["5S-1R", "4S-1R", "3S-1R", "2S-1R", "1S-1R", "Random", "Q-learning", "Max"]
-    fig, ax = plt.subplots()
-
-    for setting in settings:
-        data = pdDataframe[pdDataframe["Type"] == setting]
-
-        # Group by TotalSteps and get for each group the mean and standard deviation of the DiscountedReward
-        grouped_data = data.groupby("TotalSteps")["DiscountedReward"].agg(["mean"]).reset_index()
-
-        # print(grouped_data["mean"])
-        # print(grouped_data["std"])
-
-        # Calculate the rolling mean and standard deviation
-        rolling_mean = grouped_data["mean"].rolling(window=50000).mean()
-        # rolling_std = grouped_data["std"].rolling(window=500).mean()
-        # Plot mean and error zone
-        ax.plot(grouped_data['TotalSteps'], rolling_mean, label=setting)
-        # ax.fill_between(grouped_data['TotalSteps'], rolling_mean - rolling_std, rolling_mean + rolling_std, alpha=1)
-
-    ax.set_title(f"Reward curves with error zones for {environment}")
-    ax.set_xlabel("Steps")
-    ax.set_ylabel("Reward")
-    # ax.legend()
     plt.show()
-
 
 def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments, exclude_settings):
     fig, axs = plt.subplots(1, len(environments), figsize=(20, 5), sharey=True)
@@ -63,7 +126,7 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
         ax.plot(grouped_data.index, grouped_data['DiscountedReward'], marker='o', linestyle='-',
                 label="Average excluding specified settings")  # Using index for equal spacing
 
-        ax.set_title(environment)
+        ax.set_title(environment.capitalize())
         ax.set_xlabel("Channel Capacity")
 
         # Set the x ticks to be equally spaced and label them with the channel capacities
@@ -71,9 +134,10 @@ def plot_average_return_per_channel_capacity_excluding(pdDataframe, environments
         ax.set_xticklabels(grouped_data['C'])
 
         if ax.get_subplotspec().is_first_col():
-            ax.set_ylabel("Average Return*")
+            ax.set_ylabel("Reward*")
 
     plt.tight_layout()
+    plt.savefig("Fig3B.pgf")
     plt.show()
 
 def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
@@ -123,6 +187,7 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
     ax.set_ylabel('Drop in performance (%)')
     ax.set_xticks(np.arange(len(sorted_mean_drops)))
     ax.set_xticklabels(sorted_indices)  # Set x-ticks to be the sorted sender IDs
+    plt.savefig("Fig6.pgf")
 
     # Show the plot
     plt.show()
@@ -136,11 +201,31 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
 # Plot the reward curves
 # plot_reward_curve(df, "pong")
 
-
-# # Load tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv from the results folder as a pandas dataframe
-# df = pd.read_csv("results/tabular_results_pong_0.0001_0.05_0.05_0.8_12000000.csv")
+gamma = 0.9
+# Load the data from the results folder
+pong = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+four_room = pd.read_csv("results/tabular_results_four_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+two_room = pd.read_csv("results/tabular_results_two_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+flower = pd.read_csv("results/tabular_results_flower_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+empty_room = pd.read_csv("results/tabular_results_empty_room_0.0001_1_0.001_0.9999951365_0.9_4000000.csv", index_col=0)
+# These dataframes have the same columns, so we can concatenate them
+df = pd.concat([pong,
+                four_room,
+                two_room,
+                flower, empty_room
+                ]
+               )
+print(df.head())
+df['DiscountedReward'] = df['Reward'] * gamma ** df['Steps']
+environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
 # # Plot the reward curves
-# plot_reward_curve(df, "pong")
+plot_reward_curves(df)
+# Per environment, assign the maximum possible reward based on the environment
+df['MaxReward'] = df['Env'].map(max_rewards_9)
+# Divide the discounted reward by the maximum possible reward to get the percentage of the maximum reward
+df['DiscountedReward'] = df['DiscountedReward'] / df['MaxReward']
+plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
+
 
 
 #
@@ -152,8 +237,7 @@ def plot_sorted_drop_with_confidence(mean_drops, confidence_intervals):
 
 # Define parameters for mock data
 num_episodes = 10_000  # Number of episodes
-environments = ["pong", "four_room", "two_room", "flower", "empty_room"]
-settings = ['5S-1R']
+# settings = ['5S-1R']
 channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
 
 # # Create an empty DataFrame
@@ -187,21 +271,20 @@ channel_capacity = [3, 4, 5, 8, 9, 16, 25, 27, 32, 64]
 # # Reset index
 # df = df.reset_index(drop=True)
 
-# # Load tabular_results_pong_0.0001_1_0.001_0.9999951365_0.8_4000000
+# Load tabular_results_pong_0.0001_1_0.001_0.9999951365_0.8_4000000
 # df = pd.read_csv("results/tabular_results_pong_0.0001_1_0.001_0.9999951365_0.8_4000000.csv", index_col=0)
 #
 # print(df.head())
 #
 # # Calculate the discounted rewards and add them to the DataFrame
-# df['DiscountedReward'] = df['Reward']
+
 #
 #
 # # Plot the reward curves
 # plot_reward_curve(df, "pong")
-
+#
 # df['DiscountedReward'] = df['DiscountedReward']/0.71
 #
-# plot_average_return_per_channel_capacity_excluding(df, environments, ["Random", "Q-learning", "Max"])
 
 def visualize_belief(belief_table, layout):
     print(belief_table)
